@@ -1,0 +1,13 @@
+{
+  "comments": {
+    "purpose": "Vercel deployment configuration for AgriGrow AI React Frontend"
+  },
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

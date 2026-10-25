@@ -1,0 +1,24 @@
+# render.yaml — Render.com Deployment Configuration
+#
+# This file tells Render.com:
+#   - What kind of server to create (Python web service)
+#   - How to install dependencies (pip install -r requirements.txt)
+#   - How to start the app (uvicorn main:app)
+#   - What environment variables (secrets) to set
+
+services:
+  - type: web                          # It's a web server (has a public URL)
+    name: agrigrow-api                 # Name shown in Render dashboard
+    runtime: python                    # Programming language = Python
+    rootDir: backend                   # Code is inside the 'backend' folder
+    buildCommand: pip install -r requirements.txt   # Install all Python packages
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT  # Start FastAPI
+    # $PORT is automatically set by Render — do NOT hardcode 8000 here
+    
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: GOOGLE_API_KEY           # Your Google Gemini API key (set this in Render Dashboard)
+        sync: false                    # 'sync: false' means enter it manually in the dashboard
+      - key: FRONTEND_URL             # Your Vercel frontend URL (set after Vercel deploy)
+        sync: false

@@ -1,0 +1,30 @@
+# ─── Python Backend ─────────────────────────────────
+venv/
+backend/venv/
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+agrigrow.db
+*.db
+*.sqlite3
+
+# ─── Secrets & Environment Variables ────────────────
+.env
+.env.local
+.env.production
+.env.*
+
+# ─── Frontend Build & Packages ──────────────────────
+frontend/node_modules/
+node_modules/
+frontend/dist/
+dist/
+
+# ─── Editor & OS Junk ───────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log

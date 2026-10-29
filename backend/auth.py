@@ -1,5 +1,8 @@
 from datetime import datetime, timedelta, timezone
-import jwt
+try:
+    import jwt
+except ImportError:
+    from jose import jwt
 from passlib.context import CryptContext
 from typing import Optional
 from pydantic import BaseModel

@@ -9,8 +9,10 @@ uvicorn[standard]==0.30.6
 sqlalchemy==2.0.35
 
 # Security (JWT + password hashing)
+PyJWT==2.10.1
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
 
 # Machine Learning
 scikit-learn==1.5.2

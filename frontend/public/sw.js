@@ -1,33 +1,23 @@
-const CACHE_NAME = 'agrigrow-v1';
-const urlsToCache = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/vite.svg'
-];
+// Clear all stale caches from any previously registered service worker
+self.addEventListener('install', (event) => {
+  self.skipWaiting();
+});
 
-self.addEventListener('install', event => {
+self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        return cache.addAll(urlsToCache);
-      })
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          return caches.delete(cacheName);
+        })
+      );
+    }).then(() => {
+      return self.clients.claim();
+    })
   );
 });
 
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        if (response) {
-          return response;
-        }
-        return fetch(event.request).catch(() => {
-            if (event.request.mode === 'navigate') {
-                return caches.match('/index.html');
-            }
-        });
-      }
-    )
-  );
+// Always fetch fresh network responses
+self.addEventListener('fetch', (event) => {
+  event.respondWith(fetch(event.request));
 });

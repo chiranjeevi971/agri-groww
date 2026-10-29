@@ -320,6 +320,7 @@ const FarmDetails = () => {
   const [soilType, setSoilType] = React.useState('black')
   const [region, setRegion] = React.useState('andhra_pradesh')
   const [waterSource, setWaterSource] = React.useState('borewell')
+  const [farmingPlan, setFarmingPlan] = React.useState('organic') // 'organic' | 'conventional'
   const [showAdvanced, setShowAdvanced] = React.useState(false)
   const [npk, setNpk] = React.useState({ n: '110', p: '52', k: '26', ph: '7.8' })
   const [gpsLoading, setGpsLoading] = React.useState(false)
@@ -392,6 +393,7 @@ const FarmDetails = () => {
       soil_type: soilType,
       region: region,
       water_source: waterSource,
+      farming_method: farmingPlan,
       lat: gpsData?.lat || prof.lat || 16.3067,
       lon: gpsData?.lon || prof.lon || 80.4365,
       n: npk.n ? parseFloat(npk.n) : null,
@@ -400,6 +402,7 @@ const FarmDetails = () => {
       ph: npk.ph ? parseFloat(npk.ph) : null
     }
     localStorage.setItem('agriGrowFarmProfile', JSON.stringify(profile))
+    localStorage.setItem('agriGrowFarmingMethod', farmingPlan)
     navigate('/crop-selection')
   }
 
@@ -516,6 +519,109 @@ const FarmDetails = () => {
           </div>
         </div>
 
+        {/* Cultivation Philosophy & Farming Plan Question Card */}
+        <div style={{
+          marginBottom: '25px',
+          padding: '20px',
+          background: 'white',
+          borderRadius: '14px',
+          border: '1.5px solid var(--border-color)',
+          boxShadow: '0 4px 15px rgba(0,0,0,0.04)'
+        }}>
+          <label style={{
+            display: 'block',
+            marginBottom: '4px',
+            fontWeight: 'bold',
+            fontSize: '1rem',
+            color: 'var(--text-dark)'
+          }}>
+            🌾 Select Cultivation Philosophy & Farming Plan:
+          </label>
+          <p style={{
+            margin: '0 0 14px 0',
+            fontSize: '0.82rem',
+            color: 'var(--text-medium)'
+          }}>
+            Choose how you want AgriGrow AI to formulate your precision fertilizer, crop protection, and disease defense schedules:
+          </p>
+
+          <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px'}}>
+            {/* Option 1: 100% Organic Farming Plan */}
+            <div
+              onClick={() => setFarmingPlan('organic')}
+              style={{
+                padding: '16px',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                transition: 'all 0.25s ease',
+                background: farmingPlan === 'organic' ? 'var(--jet-black)' : '#F4F7F0',
+                color: farmingPlan === 'organic' ? '#ffffff' : 'var(--text-dark)',
+                border: farmingPlan === 'organic' ? '2px solid var(--cyan-glow)' : '1.5px solid var(--border-color)',
+                boxShadow: farmingPlan === 'organic' ? '0 0 16px rgba(0, 229, 255, 0.45)' : 'none'
+              }}
+            >
+              <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px'}}>
+                <span style={{fontSize: '1.8rem'}}>🌱</span>
+                {farmingPlan === 'organic' && (
+                  <span style={{
+                    background: 'linear-gradient(135deg, var(--amethyst), #4A148C)',
+                    color: '#ffffff',
+                    padding: '2px 8px',
+                    borderRadius: '10px',
+                    fontSize: '0.68rem',
+                    fontWeight: 'bold'
+                  }}>
+                    SELECTED
+                  </span>
+                )}
+              </div>
+              <strong style={{display: 'block', fontSize: '0.95rem', color: farmingPlan === 'organic' ? 'var(--cyan-glow)' : 'var(--text-dark)', marginBottom: '4px'}}>
+                100% Organic Farming Plan
+              </strong>
+              <p style={{margin: 0, fontSize: '0.78rem', opacity: 0.88, lineHeight: '1.35'}}>
+                Bio-fertilizers, enriched vermicompost, neem cake, jeevamrut, and botanical bio-pesticides. Zero chemical residues.
+              </p>
+            </div>
+
+            {/* Option 2: Conventional / Pesticide & Fertilizer Plan */}
+            <div
+              onClick={() => setFarmingPlan('pesticide')}
+              style={{
+                padding: '16px',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                transition: 'all 0.25s ease',
+                background: farmingPlan === 'pesticide' ? 'var(--jet-black)' : '#F4F7F0',
+                color: farmingPlan === 'pesticide' ? '#ffffff' : 'var(--text-dark)',
+                border: farmingPlan === 'pesticide' ? '2px solid var(--cyan-glow)' : '1.5px solid var(--border-color)',
+                boxShadow: farmingPlan === 'pesticide' ? '0 0 16px rgba(0, 229, 255, 0.45)' : 'none'
+              }}
+            >
+              <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px'}}>
+                <span style={{fontSize: '1.8rem'}}>⚡</span>
+                {farmingPlan === 'pesticide' && (
+                  <span style={{
+                    background: 'linear-gradient(135deg, var(--amethyst), #4A148C)',
+                    color: '#ffffff',
+                    padding: '2px 8px',
+                    borderRadius: '10px',
+                    fontSize: '0.68rem',
+                    fontWeight: 'bold'
+                  }}>
+                    SELECTED
+                  </span>
+                )}
+              </div>
+              <strong style={{display: 'block', fontSize: '0.95rem', color: farmingPlan === 'pesticide' ? 'var(--cyan-glow)' : 'var(--text-dark)', marginBottom: '4px'}}>
+                Pesticide & Fertilizer Plan
+              </strong>
+              <p style={{margin: 0, fontSize: '0.78rem', opacity: 0.88, lineHeight: '1.35'}}>
+                Subsidized commercial fertilizers (Urea, DAP, MOP) and CACP-approved targeted chemical crop protection sprays.
+              </p>
+            </div>
+          </div>
+        </div>
+
         <button className="btn-accent" style={{width: '100%', padding: '14px', fontSize: '1rem', fontWeight: 'bold'}} onClick={handleContinue}>
           Analyze with Live Weather & Soil ML →
         </button>
@@ -528,7 +634,7 @@ const CropSelection = () => {
   const navigate = useNavigate()
   const [loading, setLoading] = React.useState(true)
   const [data, setData] = React.useState(null)
-  const [farmingMethod, setFarmingMethod] = React.useState('organic')
+  const [farmingMethod, setFarmingMethod] = React.useState(localStorage.getItem('agriGrowFarmingMethod') || 'organic')
   const [sortBy, setSortBy] = React.useState('confidence') // 'confidence' or 'profit'
 
   const fetchRecommendations = (sortMode) => {
@@ -829,7 +935,15 @@ const CropSelection = () => {
               border: farmingMethod === 'conventional' ? '2px solid var(--cyan-glow)' : '1.5px solid var(--border-color)',
               boxShadow: farmingMethod === 'conventional' ? '0 0 14px rgba(0, 229, 255, 0.45)' : 'none'
             }}
-            onClick={() => setFarmingMethod('conventional')}
+            onClick={() => {
+                setFarmingMethod('conventional');
+                setFertilizerMethod('chemical');
+                const updatedCrops = [...crops];
+                updatedCrops[activeCropIdx].method = 'conventional';
+                setCrops(updatedCrops);
+                localStorage.setItem('agriGrowFarmingMethod', 'conventional');
+                localStorage.setItem('agriGrowSelectedCrop', JSON.stringify({ name: currentCrop.name, method: 'conventional' }));
+              }}
           >
             Conventional (Fertilizers & Pesticides)
           </button>
@@ -848,7 +962,14 @@ const CropSelection = () => {
               border: farmingMethod === 'organic' ? '2px solid var(--cyan-glow)' : '1.5px solid var(--border-color)',
               boxShadow: farmingMethod === 'organic' ? '0 0 14px rgba(0, 229, 255, 0.45)' : 'none'
             }}
-            onClick={() => setFarmingMethod('organic')}
+            onClick={() => {
+                setFarmingMethod('organic');
+                setFertilizerMethod('organic');
+                const updatedCrops = [...crops];
+                updatedCrops[activeCropIdx].method = 'organic';
+                setCrops(updatedCrops);
+                localStorage.setItem('agriGrowSelectedCrop', JSON.stringify({ name: currentCrop.name, method: 'organic' }));
+              }}
           >
             🌱 100% Organic (Bio-fertilizers & Neem)
           </button>

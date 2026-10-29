@@ -1,30 +1,56 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 
+/* ============================================================
+   AGRIGROW AI — Brand Color System
+   60% Sage Green  (#87A96B) — backgrounds, panels, primary UI
+   30% Walnut Brown (#5A3E2B) — text, headers, borders, depth
+   10% Amber Glow  (#D58511) — buttons, highlights, accents, CTAs
+   ============================================================ */
+
 :root {
-  /* Earthy Color Palette */
-  --primary: #2d6a4f; /* Dark Green */
-  --primary-light: #40916c;
-  --secondary: #d8f3dc; /* Light Green */
-  --accent: #f4a261; /* Earthy Orange */
-  --bg-color: #f7fdf9;
-  --text-dark: #1b4332;
-  --text-light: #74c69d;
-  
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.5);
-  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+  /* --- 60% Sage Green: Primary & Background Colors --- */
+  --primary:        #87A96B;   /* Main Sage Green — nav bars, icons, primary buttons */
+  --primary-light:  #A3BE8C;   /* Lighter Sage — hover states, secondary buttons */
+  --primary-dark:   #6B8F53;   /* Deeper Sage — active states, pressed buttons */
+  --bg-color:       #F4F7F0;   /* Near-white with a sage tint — main page background */
+  --secondary:      #DDE8D5;   /* Very light sage — card backgrounds, subtle fills */
+
+  /* --- 30% Walnut Brown: Text, Depth & Structure --- */
+  --text-dark:      #5A3E2B;   /* Main Walnut Brown — headings, body text */
+  --text-medium:    #7A5540;   /* Medium walnut — subheadings, labels */
+  --text-light:     #A07858;   /* Light walnut — captions, placeholders, hints */
+  --border-color:   #C4A882;   /* Warm walnut border for cards and inputs */
+
+  /* --- 10% Amber Glow: Accents, CTAs & Highlights --- */
+  --accent:         #D58511;   /* Amber Glow — primary action buttons, badges */
+  --accent-light:   #E8A030;   /* Light amber — hover on accent, highlights */
+  --accent-dark:    #B36E0D;   /* Deep amber — pressed accent states */
+  --accent-bg:      #FEF3DC;   /* Amber tint background — alert cards, banners */
+
+  /* --- Glass & Shadows --- */
+  --glass-bg:       rgba(244, 247, 240, 0.80);   /* Sage-tinted glass panels */
+  --glass-border:   rgba(135, 169, 107, 0.25);   /* Sage-tinted glass border */
+  --glass-shadow:   0 8px 32px rgba(90, 62, 43, 0.10); /* Walnut-tinted shadow */
 }
 
+/* ============================================================
+   DARK MODE OVERRIDES
+   ============================================================ */
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg-color: #081c15;
-    --text-dark: #d8f3dc;
-    --text-light: #95d5b2;
-    --glass-bg: rgba(8, 28, 21, 0.6);
-    --glass-border: rgba(255, 255, 255, 0.1);
+    --bg-color:      #1E2618;   /* Very dark sage for background */
+    --secondary:     #2A3620;   /* Dark sage panels */
+    --text-dark:     #E8D5BE;   /* Light walnut for readable text */
+    --text-medium:   #C4A882;   /* Medium walnut for subtext */
+    --text-light:    #A07858;   /* Walnut hint text */
+    --glass-bg:      rgba(30, 38, 24, 0.85);
+    --glass-border:  rgba(135, 169, 107, 0.20);
   }
 }
 
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -40,7 +66,9 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Glassmorphism Utilities */
+/* ============================================================
+   GLASSMORPHISM PANEL
+   ============================================================ */
 .glass-panel {
   background: var(--glass-bg);
   backdrop-filter: blur(10px);
@@ -50,74 +78,141 @@ body {
   border-radius: 20px;
 }
 
-/* Animations */
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .animate-fade-in {
   animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Base Styles */
+/* Ticker scroll animation for live news */
+@keyframes ticker {
+  0%   { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.6; transform: scale(0.85); }
+}
+
+/* ============================================================
+   TYPOGRAPHY
+   ============================================================ */
 h1, h2, h3, h4, h5, h6 {
   font-weight: 600;
   margin-bottom: 0.5rem;
+  color: var(--text-dark);
 }
 
+/* ============================================================
+   BUTTONS
+   ============================================================ */
 button {
   cursor: pointer;
   font-family: inherit;
   border: none;
   outline: none;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
 button:active {
-  transform: scale(0.95);
+  transform: scale(0.96);
 }
 
+/* Primary Button — Sage Green (60% color, used most) */
 .btn-primary {
-  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
   color: white;
   padding: 12px 24px;
   border-radius: 12px;
-  font-size: 1.1rem;
-  font-weight: 500;
-  box-shadow: 0 4px 15px rgba(45, 106, 79, 0.3);
+  font-size: 1.05rem;
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(135, 169, 107, 0.35);
+  letter-spacing: 0.2px;
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(45, 106, 79, 0.4);
+  box-shadow: 0 6px 20px rgba(135, 169, 107, 0.50);
+  background: linear-gradient(135deg, var(--primary-light), var(--primary));
 }
 
+/* Accent Button — Amber Glow (10% color, used for CTAs) */
+.btn-accent {
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+  color: white;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(213, 133, 17, 0.35);
+}
+
+.btn-accent:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(213, 133, 17, 0.50);
+  background: linear-gradient(135deg, var(--accent-light), var(--accent));
+}
+
+/* Outline / Ghost Button — Walnut Brown */
+.btn-outline {
+  background: transparent;
+  color: var(--text-dark);
+  border: 2px solid var(--border-color);
+  padding: 10px 22px;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.btn-outline:hover {
+  background: var(--secondary);
+  border-color: var(--primary);
+  color: var(--primary-dark);
+}
+
+/* ============================================================
+   FORM INPUTS & SELECTS
+   ============================================================ */
 input, select {
   font-family: inherit;
   padding: 12px 16px;
   border-radius: 12px;
-  border: 1px solid rgba(0,0,0,0.1);
-  background: rgba(255,255,255,0.9);
+  border: 1.5px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.92);
   width: 100%;
   font-size: 1rem;
+  color: var(--text-dark);
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 @media (prefers-color-scheme: dark) {
   input, select {
-    background: rgba(0,0,0,0.3);
-    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(30, 38, 24, 0.8);
+    border: 1.5px solid rgba(135, 169, 107, 0.3);
     color: var(--text-dark);
   }
 }
 
 input:focus, select:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(64, 145, 108, 0.2);
+  box-shadow: 0 0 0 3px rgba(135, 169, 107, 0.22);
   outline: none;
 }
 
+input::placeholder {
+  color: var(--text-light);
+}
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
 #root {
   min-height: 100vh;
   display: flex;
@@ -131,20 +226,18 @@ input:focus, select:focus {
   width: 100%;
 }
 
-/* Ticker Animation */
-@keyframes ticker {
-  0% { transform: translateX(100%); }
-  100% { transform: translateX(-100%); }
-}
-
+/* ============================================================
+   NEWS TICKER (Live Govt Policy Radar)
+   ============================================================ */
 .news-ticker-container {
   overflow: hidden;
   white-space: nowrap;
-  background: #1b4332;
-  color: white;
+  /* Walnut brown background for the ticker bar */
+  background: linear-gradient(90deg, #5A3E2B, #7A5540);
+  color: #FEF3DC;     /* Amber-tinted white text */
   padding: 8px 0;
   font-size: 0.85rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 8px rgba(90, 62, 43, 0.30);
   position: relative;
   z-index: 100;
 }
@@ -160,23 +253,89 @@ input:focus, select:focus {
   animation-play-state: paused;
 }
 
-/* Print Styling */
+/* ============================================================
+   UTILITY BADGES & TAGS
+   ============================================================ */
+
+/* Green badge — eligible, normal, success */
+.badge-success {
+  background: var(--secondary);
+  color: var(--primary-dark);
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: inline-block;
+}
+
+/* Amber badge — warning, important notice */
+.badge-accent {
+  background: var(--accent-bg);
+  color: var(--accent-dark);
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: inline-block;
+}
+
+/* Walnut badge — neutral, informational */
+.badge-neutral {
+  background: #EDE0D0;
+  color: var(--text-dark);
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: inline-block;
+}
+
+/* ============================================================
+   SCROLLBAR CUSTOMIZATION (Sage & Walnut theme)
+   ============================================================ */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-dark);
+}
+
+/* ============================================================
+   PRINT / PDF STYLING (Bank Farm Report)
+   ============================================================ */
 @media print {
   body {
     background: white !important;
-    color: black !important;
+    color: #1a1a1a !important;
   }
+
   .no-print {
     display: none !important;
   }
+
   .print-only {
     display: block !important;
   }
+
   .glass-panel {
     border: 1px solid #ccc !important;
     box-shadow: none !important;
     background: white !important;
     border-radius: 4px !important;
   }
-}
 
+  /* Force page break before each section in the report */
+  .print-page-break {
+    page-break-before: always;
+  }
+}

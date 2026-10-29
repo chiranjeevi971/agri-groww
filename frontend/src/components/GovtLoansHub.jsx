@@ -1,4 +1,4 @@
-﻿import React from 'react'
+import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import API_BASE from '../api'
 
@@ -10,8 +10,8 @@ const DEFAULT_SCHEMES = [
     ministry: 'Ministry of Agriculture & Farmers Welfare / NABARD',
     interest_rate: '4.0% APR (7% base - 3% prompt repayment incentive)',
     subsidy_grant: '3% annual interest subvention',
-    max_amount: 'â‚¹3,00,000 at 4% APR (Up to â‚¹1,60,000 100% collateral-free)',
-    collateral_requirement: 'No collateral or margin money required up to â‚¹1,60,000 (raised to â‚¹2L under tie-up).',
+    max_amount: '₹3,00,000 at 4% APR (Up to ₹1,60,000 100% collateral-free)',
+    collateral_requirement: 'No collateral or margin money required up to ₹1,60,000 (raised to ₹2L under tie-up).',
     description: 'Provides timely credit to farmers for crop cultivation inputs (seeds, fertilizer, diesel, labour) and post-harvest expenses.',
     eligibility: [
       'All farmers: Owner cultivators, tenant farmers, oral lessees and sharecroppers.',
@@ -29,8 +29,8 @@ const DEFAULT_SCHEMES = [
     ministry: 'Ministry of Agriculture & Farmers Welfare',
     interest_rate: 'Subsidized with 3.0% per annum interest rebate',
     subsidy_grant: '3% interest subvention for 7 years + CGTMSE credit guarantee fee paid by Govt',
-    max_amount: 'Loans up to â‚¹2.00 Crore per project',
-    collateral_requirement: 'Credit guarantee coverage available under CGTMSE for loans up to â‚¹2.00 Crore with zero third-party collateral.',
+    max_amount: 'Loans up to ₹2.00 Crore per project',
+    collateral_requirement: 'Credit guarantee coverage available under CGTMSE for loans up to ₹2.00 Crore with zero third-party collateral.',
     description: 'Medium to long-term debt financing for post-harvest management infrastructure: solar cold rooms, pack houses, assaying units, and ripening chambers.',
     eligibility: [
       'Individual Farmers, FPOs, PACS, Self Help Groups, and Agri-entrepreneurs.',
@@ -64,8 +64,8 @@ const DEFAULT_SCHEMES = [
     category: 'processing',
     ministry: 'Ministry of Food Processing Industries (MoFPI)',
     interest_rate: 'Normal Bank lending rate with 35% Capital Credit-linked Subsidy',
-    subsidy_grant: '35% credit-linked capital subsidy (Maximum â‚¹10.00 Lakh per unit)',
-    max_amount: 'â‚¹30.00 Lakh project cost',
+    subsidy_grant: '35% credit-linked capital subsidy (Maximum ₹10.00 Lakh per unit)',
+    max_amount: '₹30.00 Lakh project cost',
     collateral_requirement: 'Eligible for CGTMSE collateral-free bank guarantee.',
     description: 'Financial, technical and business support for upgrading micro-enterprises like chilli grinding, turmeric polishers, cold-press oil mills, and pulse processing.',
     eligibility: [
@@ -83,7 +83,7 @@ const DEFAULT_SCHEMES = [
     ministry: 'Ministry of Rural Development / State Rural Livelihoods Mission',
     interest_rate: '3.0% - 7.0% APR (Subsidized through Vaddi Leni Runalu / YSR Sunna Vaddi)',
     subsidy_grant: '100% interest subvention for prompt monthly repayment',
-    max_amount: 'â‚¹1,00,000 to â‚¹5,00,000 per SHG woman farmer member',
+    max_amount: '₹1,00,000 to ₹5,00,000 per SHG woman farmer member',
     collateral_requirement: 'Peer guarantee / Group social collateral. Zero land mortgage.',
     description: 'Affordable credit for women farmers and dairy operators for seed purchases, micro-irrigation kits, milch animals, and organic fertilizer inputs.',
     eligibility: [
@@ -143,7 +143,7 @@ const GovtLoansHub = () => {
     }
 
     // Fetch schemes from backend
-    fetch('${API_BASE}/loans/schemes')
+    fetch(`${API_BASE}/loans/schemes`)
       .then(res => res.json())
       .then(data => {
         if (data && data.schemes && data.schemes.length > 0) {
@@ -158,7 +158,7 @@ const GovtLoansHub = () => {
 
   const runCalculation = (cropId, ac, existLoan, apr) => {
     setLoadingCalc(true)
-    fetch('${API_BASE}/loans/calculate', {
+    fetch(`${API_BASE}/loans/calculate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -199,7 +199,7 @@ const GovtLoansHub = () => {
             net_effective_farmer_rate_pct: 4.0
           },
           repayment_deadline_days: 365,
-          action_advice: `Apply at nearest SBI / Andhra Bank / Gramin Bank with your land RoR to save â‚¹${(privInt - kccInt).toLocaleString()} every year.`
+          action_advice: `Apply at nearest SBI / Andhra Bank / Gramin Bank with your land RoR to save ₹${(privInt - kccInt).toLocaleString()} every year.`
         })
         setLoadingCalc(false)
       })
@@ -214,7 +214,7 @@ const GovtLoansHub = () => {
     if (!calcResult) return
     setWhatsappStatus('Generating link...')
 
-    fetch('${API_BASE}/notifications/whatsapp-payload', {
+    fetch(`${API_BASE}/notifications/whatsapp-payload`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -240,13 +240,13 @@ const GovtLoansHub = () => {
       })
       .catch(() => {
         const text = encodeURIComponent(
-          `ðŸŒ¾ *AgriGrow AI: Govt KCC Loan Eligibility Alert*\n\n` +
-          `â€¢ *Crop:* ${calcResult.crop} (${calcResult.acres} Acres)\n` +
-          `â€¢ *Approved Credit Limit:* â‚¹${calcResult.approved_kcc_credit_limit.toLocaleString()} @ 4% APR\n` +
-          `â€¢ *Govt KCC Interest:* â‚¹${calcResult.interest_comparison?.kcc_annual_interest_inr.toLocaleString()}/yr\n` +
-          `â€¢ *Private Moneylender (30%):* â‚¹${calcResult.interest_comparison?.moneylender_annual_interest_inr.toLocaleString()}/yr\n` +
-          `ðŸ’° *Net Annual Farmer Savings:* â‚¹${calcResult.interest_comparison?.annual_farmer_savings_inr.toLocaleString()}\n\n` +
-          `âœ… 100% Collateral-Free up to â‚¹1.60 Lakh under RBI guidelines.\n` +
+          `🌾 *AgriGrow AI: Govt KCC Loan Eligibility Alert*\n\n` +
+          `• *Crop:* ${calcResult.crop} (${calcResult.acres} Acres)\n` +
+          `• *Approved Credit Limit:* ₹${calcResult.approved_kcc_credit_limit.toLocaleString()} @ 4% APR\n` +
+          `• *Govt KCC Interest:* ₹${calcResult.interest_comparison?.kcc_annual_interest_inr.toLocaleString()}/yr\n` +
+          `• *Private Moneylender (30%):* ₹${calcResult.interest_comparison?.moneylender_annual_interest_inr.toLocaleString()}/yr\n` +
+          `💰 *Net Annual Farmer Savings:* ₹${calcResult.interest_comparison?.annual_farmer_savings_inr.toLocaleString()}\n\n` +
+          `✅ 100% Collateral-Free up to ₹1.60 Lakh under RBI guidelines.\n` +
           `Apply online: https://pmkisan.gov.in`
         )
         window.open(`https://wa.me/?text=${text}`, '_blank')
@@ -257,14 +257,14 @@ const GovtLoansHub = () => {
 
   const handleShareSchemeWhatsApp = (sch) => {
     const text = encodeURIComponent(
-      `ðŸ›ï¸ *Government Agricultural Scheme Alert*\n\n` +
+      `🏛️ *Government Agricultural Scheme Alert*\n\n` +
       `*${sch.name}*\n` +
-      `â€¢ *Subsidized Interest / Grant:* ${sch.interest_rate}\n` +
-      `â€¢ *Max Financial Aid:* ${sch.max_amount}\n` +
-      `â€¢ *Subsidy Benefit:* ${sch.subsidy_grant}\n` +
-      `â€¢ *Collateral Norms:* ${sch.collateral_requirement}\n\n` +
-      `ðŸ”— *Official Portal:* ${sch.apply_url}\n` +
-      `ðŸ“ž *Toll-Free Helpline:* ${sch.helpline || '1800-180-1551'}\n\n` +
+      `• *Subsidized Interest / Grant:* ${sch.interest_rate}\n` +
+      `• *Max Financial Aid:* ${sch.max_amount}\n` +
+      `• *Subsidy Benefit:* ${sch.subsidy_grant}\n` +
+      `• *Collateral Norms:* ${sch.collateral_requirement}\n\n` +
+      `🔗 *Official Portal:* ${sch.apply_url}\n` +
+      `📞 *Toll-Free Helpline:* ${sch.helpline || '1800-180-1551'}\n\n` +
       `_Shared via AgriGrow AI Smart Agricultural Hub_`
     )
     window.open(`https://wa.me/?text=${text}`, '_blank')
@@ -280,54 +280,54 @@ const GovtLoansHub = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
         <button 
           onClick={() => navigate('/dashboard')}
-          className="btn-primary"
-          style={{ background: 'var(--glass-bg)', color: 'var(--primary)', border: '1px solid var(--primary)', padding: '6px 14px', fontSize: '0.85rem' }}
+          className="btn-outline"
+          style={{ padding: '6px 14px', fontSize: '0.85rem' }}
         >
-          â† Back to Farm Dashboard
+          ← Back to Farm Dashboard
         </button>
-        <div style={{ background: '#e8f5e9', color: '#1b5e20', padding: '6px 14px', borderRadius: '20px', fontWeight: 'bold', fontSize: '0.8rem', border: '1px solid #c8e6c9' }}>
-          ðŸ›ï¸ NABARD & RBI Regulated
+        <div style={{ background: '#DDE8D5', color: '#5A3E2B', padding: '6px 14px', borderRadius: '20px', fontWeight: 'bold', fontSize: '0.8rem', border: '1px solid #C4A882' }}>
+          🏛️ NABARD & RBI Regulated
         </div>
       </div>
 
       <div style={{ marginBottom: '20px' }}>
-        <h2 style={{ color: 'var(--primary)', margin: '0 0 5px 0' }}>Government Agricultural Loans & KCC Hub</h2>
-        <p style={{ margin: 0, color: 'var(--text-light)', fontSize: '0.92rem' }}>
+        <h2 style={{ color: 'var(--text-dark)', margin: '0 0 5px 0' }}>Government Agricultural Loans & KCC Hub</h2>
+        <p style={{ margin: 0, color: 'var(--text-medium)', fontSize: '0.92rem' }}>
           Eliminate high-interest rural debt with 4% KCC credit limits, interest subventions, and capital grants.
         </p>
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', borderBottom: '2px solid #e0e0e0', paddingBottom: '6px' }}>
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', borderBottom: '2px solid #C4A882', paddingBottom: '6px' }}>
         <button
           onClick={() => setActiveTab('calculator')}
           style={{
             background: 'none',
             border: 'none',
-            borderBottom: activeTab === 'calculator' ? '3px solid var(--primary)' : '3px solid transparent',
-            color: activeTab === 'calculator' ? 'var(--primary)' : '#666',
+            borderBottom: activeTab === 'calculator' ? '3px solid var(--accent)' : '3px solid transparent',
+            color: activeTab === 'calculator' ? 'var(--text-dark)' : 'var(--text-light)',
             fontWeight: 'bold',
             padding: '8px 16px',
             fontSize: '0.95rem',
             cursor: 'pointer'
           }}
         >
-          âš–ï¸ KCC @ 4% vs Moneylender Showdown
+          ⚖️ KCC @ 4% vs Moneylender Showdown
         </button>
         <button
           onClick={() => setActiveTab('schemes')}
           style={{
             background: 'none',
             border: 'none',
-            borderBottom: activeTab === 'schemes' ? '3px solid var(--primary)' : '3px solid transparent',
-            color: activeTab === 'schemes' ? 'var(--primary)' : '#666',
+            borderBottom: activeTab === 'schemes' ? '3px solid var(--accent)' : '3px solid transparent',
+            color: activeTab === 'schemes' ? 'var(--text-dark)' : 'var(--text-light)',
             fontWeight: 'bold',
             padding: '8px 16px',
             fontSize: '0.95rem',
             cursor: 'pointer'
           }}
         >
-          ðŸ“‹ Curated Govt Schemes Directory ({schemes.length})
+          📋 Curated Govt Schemes Directory ({schemes.length})
         </button>
       </div>
 
@@ -335,26 +335,26 @@ const GovtLoansHub = () => {
       {activeTab === 'calculator' && (
         <div className="animate-fade-in">
           <div className="glass-panel" style={{ padding: '24px', marginBottom: '24px', background: 'white' }}>
-            <h3 style={{ margin: '0 0 16px 0', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>ðŸŒ¾</span> NABARD Scale of Finance Credit Calculator
+            <h3 style={{ margin: '0 0 16px 0', color: 'var(--text-dark)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>🌾</span> NABARD Scale of Finance Credit Calculator
             </h3>
 
             <form onSubmit={handleCalculateSubmit} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '20px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '6px' }}>Cultivated Crop</label>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '6px', color: 'var(--text-dark)' }}>Cultivated Crop</label>
                 <select 
                   value={selectedCrop} 
                   onChange={(e) => setSelectedCrop(e.target.value)}
-                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ccc', background: 'white' }}
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #C4A882', background: 'white', color: 'var(--text-dark)' }}
                 >
                   {CROPS.map(c => (
-                    <option key={c.id} value={c.id}>{c.name} (Scale: â‚¹{c.scaleOfFinance.toLocaleString()}/acre)</option>
+                    <option key={c.id} value={c.id}>{c.name} (Scale: ₹{c.scaleOfFinance.toLocaleString()}/acre)</option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '6px' }}>Landholding (Acres)</label>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '6px', color: 'var(--text-dark)' }}>Landholding (Acres)</label>
                 <input 
                   type="number" 
                   step="0.5" 
@@ -362,24 +362,24 @@ const GovtLoansHub = () => {
                   max="100" 
                   value={acres} 
                   onChange={(e) => setAcres(e.target.value)}
-                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ccc' }} 
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #C4A882' }} 
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '6px' }}>Private Moneylender Debt (â‚¹)</label>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '6px', color: 'var(--text-dark)' }}>Private Moneylender Debt (₹)</label>
                 <input 
                   type="number" 
                   step="5000" 
                   min="0" 
                   value={existingLoan} 
                   onChange={(e) => setExistingLoan(e.target.value)}
-                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ccc' }} 
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #C4A882' }} 
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '6px' }}>Moneylender APR (%)</label>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '6px', color: 'var(--text-dark)' }}>Moneylender APR (%)</label>
                 <input 
                   type="number" 
                   step="1" 
@@ -388,18 +388,18 @@ const GovtLoansHub = () => {
                   value={moneylenderApr} 
                   onChange={(e) => setMoneylenderApr(e.target.value)}
                   placeholder="30% (standard 2.5%/mo)"
-                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ccc' }} 
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #C4A882' }} 
                 />
               </div>
 
               <div style={{ display: 'flex', alignItems: 'flex-end' }}>
                 <button 
                   type="submit" 
-                  className="btn-primary" 
+                  className="btn-accent" 
                   style={{ width: '100%', height: '42px', fontSize: '0.92rem', fontWeight: 'bold' }}
                   disabled={loadingCalc}
                 >
-                  {loadingCalc ? 'Calculating Scale of Finance...' : 'ðŸ” Compute KCC Limit & Savings'}
+                  {loadingCalc ? 'Calculating Scale of Finance...' : '🔍 Compute KCC Limit & Savings'}
                 </button>
               </div>
             </form>
@@ -409,11 +409,11 @@ const GovtLoansHub = () => {
               <div className="animate-fade-in" style={{ marginTop: '20px' }}>
                 {/* Huge Savings Hero Banner */}
                 <div style={{
-                  background: 'linear-gradient(135deg, #1b5e20, #2e7d32)',
+                  background: 'linear-gradient(135deg, #5A3E2B, #3D291D)',
                   color: 'white',
                   padding: '20px 24px',
                   borderRadius: '12px',
-                  boxShadow: '0 4px 15px rgba(0,0,0,0.15)',
+                  boxShadow: '0 4px 15px rgba(90, 62, 43, 0.25)',
                   marginBottom: '20px'
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
@@ -421,11 +421,11 @@ const GovtLoansHub = () => {
                       <div style={{ fontSize: '0.85rem', letterSpacing: '0.5px', textTransform: 'uppercase', opacity: 0.9 }}>
                         Annual Farmer Debt Relief Benefit
                       </div>
-                      <div style={{ fontSize: '2.2rem', fontWeight: '900', color: '#ffeb3b', margin: '4px 0' }}>
-                        â‚¹{calcResult.interest_comparison?.annual_farmer_savings_inr?.toLocaleString()} SAVED / YEAR
+                      <div style={{ fontSize: '2.2rem', fontWeight: '900', color: '#FED79E', margin: '4px 0' }}>
+                        ₹{calcResult.interest_comparison?.annual_farmer_savings_inr?.toLocaleString()} SAVED / YEAR
                       </div>
                       <div style={{ fontSize: '0.9rem', opacity: 0.95 }}>
-                        Switching your â‚¹{calcResult.approved_kcc_credit_limit?.toLocaleString()} working capital from private moneylender to 4% KCC saves {calcResult.interest_comparison?.savings_percentage}% on interest!
+                        Switching your ₹{calcResult.approved_kcc_credit_limit?.toLocaleString()} working capital from private moneylender to 4% KCC saves {calcResult.interest_comparison?.savings_percentage}% on interest!
                       </div>
                     </div>
 
@@ -446,12 +446,12 @@ const GovtLoansHub = () => {
                         boxShadow: '0 4px 10px rgba(0,0,0,0.2)'
                       }}
                     >
-                      <span>ðŸ“² Send to WhatsApp</span>
+                      <span>📱 Send to WhatsApp</span>
                     </button>
                   </div>
                   {whatsappStatus && (
-                    <div style={{ marginTop: '10px', fontSize: '0.82rem', color: '#ffeb3b', fontWeight: 'bold' }}>
-                      âœ“ {whatsappStatus}
+                    <div style={{ marginTop: '10px', fontSize: '0.82rem', color: '#FED79E', fontWeight: 'bold' }}>
+                      ✓ {whatsappStatus}
                     </div>
                   )}
                 </div>
@@ -459,27 +459,27 @@ const GovtLoansHub = () => {
                 {/* Side-by-Side Comparison Grid */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
                   {/* Card A: KCC Govt Loan */}
-                  <div style={{ background: '#f1f8e9', border: '2px solid #81c784', borderRadius: '10px', padding: '18px' }}>
+                  <div style={{ background: '#F4F7F0', border: '2px solid #87A96B', borderRadius: '10px', padding: '18px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                      <span style={{ fontWeight: 'bold', color: '#1b5e20', fontSize: '1.05rem' }}>ðŸ›ï¸ Kisan Credit Card (KCC)</span>
-                      <span style={{ background: '#2e7d32', color: 'white', padding: '3px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold' }}>
+                      <span style={{ fontWeight: 'bold', color: '#5A3E2B', fontSize: '1.05rem' }}>🏛️ Kisan Credit Card (KCC)</span>
+                      <span style={{ background: '#87A96B', color: 'white', padding: '3px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold' }}>
                         GOVT OF INDIA
                       </span>
                     </div>
 
-                    <div style={{ fontSize: '0.88rem', color: '#333', lineHeight: '1.8' }}>
-                      <div>Approved Credit Limit: <strong>â‚¹{calcResult.approved_kcc_credit_limit?.toLocaleString()}</strong></div>
-                      <div>Scale of Finance: <strong>â‚¹{calcResult.scale_of_finance_per_acre?.toLocaleString()} / acre</strong></div>
+                    <div style={{ fontSize: '0.88rem', color: '#5A3E2B', lineHeight: '1.8' }}>
+                      <div>Approved Credit Limit: <strong>₹{calcResult.approved_kcc_credit_limit?.toLocaleString()}</strong></div>
+                      <div>Scale of Finance: <strong>₹{calcResult.scale_of_finance_per_acre?.toLocaleString()} / acre</strong></div>
                       <div>Base Bank Interest: <span style={{ textDecoration: 'line-through', color: '#888' }}>7.0%</span></div>
-                      <div>Interest Subvention: <span style={{ color: '#2e7d32', fontWeight: 'bold' }}>- 3.0% (Prompt Repayment)</span></div>
-                      <div>Effective Farmer Rate: <strong style={{ color: '#1b5e20', fontSize: '1.1rem' }}>4.0% APR</strong></div>
-                      <div style={{ marginTop: '8px', borderTop: '1px dashed #81c784', paddingTop: '8px' }}>
-                        Annual Interest Cost: <strong style={{ color: '#1b5e20', fontSize: '1.2rem' }}>â‚¹{calcResult.interest_comparison?.kcc_annual_interest_inr?.toLocaleString()}</strong>
+                      <div>Interest Subvention: <span style={{ color: '#87A96B', fontWeight: 'bold' }}>- 3.0% (Prompt Repayment)</span></div>
+                      <div>Effective Farmer Rate: <strong style={{ color: '#5A3E2B', fontSize: '1.1rem' }}>4.0% APR</strong></div>
+                      <div style={{ marginTop: '8px', borderTop: '1px dashed #C4A882', paddingTop: '8px' }}>
+                        Annual Interest Cost: <strong style={{ color: '#5A3E2B', fontSize: '1.2rem' }}>₹{calcResult.interest_comparison?.kcc_annual_interest_inr?.toLocaleString()}</strong>
                       </div>
                       <div style={{ marginTop: '8px' }}>
                         <span style={{
-                          background: calcResult.collateral_free ? '#c8e6c9' : '#fff9c4',
-                          color: calcResult.collateral_free ? '#1b5e20' : '#f57f17',
+                          background: calcResult.collateral_free ? '#DDE8D5' : '#FEF3DC',
+                          color: calcResult.collateral_free ? '#5A3E2B' : '#D58511',
                           padding: '3px 8px',
                           borderRadius: '6px',
                           fontSize: '0.78rem',
@@ -493,26 +493,26 @@ const GovtLoansHub = () => {
                   </div>
 
                   {/* Card B: Private Moneylender */}
-                  <div style={{ background: '#ffebee', border: '2px solid #e57373', borderRadius: '10px', padding: '18px' }}>
+                  <div style={{ background: '#FFF5F5', border: '2px solid #E57373', borderRadius: '10px', padding: '18px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                      <span style={{ fontWeight: 'bold', color: '#b71c1c', fontSize: '1.05rem' }}>âš ï¸ Private Moneylender / Dealer</span>
-                      <span style={{ background: '#d32f2f', color: 'white', padding: '3px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold' }}>
+                      <span style={{ fontWeight: 'bold', color: '#B71C1C', fontSize: '1.05rem' }}>⚠️ Private Moneylender / Dealer</span>
+                      <span style={{ background: '#D32F2F', color: 'white', padding: '3px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold' }}>
                         HIGH DEBT TRAP
                       </span>
                     </div>
 
                     <div style={{ fontSize: '0.88rem', color: '#333', lineHeight: '1.8' }}>
-                      <div>Loan Principal: <strong>â‚¹{calcResult.approved_kcc_credit_limit?.toLocaleString()}</strong></div>
+                      <div>Loan Principal: <strong>₹{calcResult.approved_kcc_credit_limit?.toLocaleString()}</strong></div>
                       <div>Monthly Interest: <strong>2.5% to 3.0% per month</strong></div>
-                      <div>Effective APR: <strong style={{ color: '#b71c1c', fontSize: '1.1rem' }}>{moneylenderApr}% per year</strong></div>
-                      <div>Collateral Demanded: <span style={{ color: '#b71c1c' }}>Blank Cheque, Land Passbook, Promissory Note</span></div>
-                      <div style={{ marginTop: '26px', borderTop: '1px dashed #e57373', paddingTop: '8px' }}>
-                        Annual Interest Cost: <strong style={{ color: '#b71c1c', fontSize: '1.2rem' }}>â‚¹{calcResult.interest_comparison?.moneylender_annual_interest_inr?.toLocaleString()}</strong>
+                      <div>Effective APR: <strong style={{ color: '#B71C1C', fontSize: '1.1rem' }}>{moneylenderApr}% per year</strong></div>
+                      <div>Collateral Demanded: <span style={{ color: '#B71C1C' }}>Blank Cheque, Land Passbook, Promissory Note</span></div>
+                      <div style={{ marginTop: '26px', borderTop: '1px dashed #E57373', paddingTop: '8px' }}>
+                        Annual Interest Cost: <strong style={{ color: '#B71C1C', fontSize: '1.2rem' }}>₹{calcResult.interest_comparison?.moneylender_annual_interest_inr?.toLocaleString()}</strong>
                       </div>
                       <div style={{ marginTop: '8px' }}>
                         <span style={{
-                          background: '#ffcdd2',
-                          color: '#b71c1c',
+                          background: '#FFCDD2',
+                          color: '#B71C1C',
                           padding: '3px 8px',
                           borderRadius: '6px',
                           fontSize: '0.78rem',
@@ -527,12 +527,12 @@ const GovtLoansHub = () => {
                 </div>
 
                 {/* Practical Step-by-Step Action Guide */}
-                <div style={{ background: '#e3f2fd', borderLeft: '4px solid #1976d2', padding: '14px 18px', borderRadius: '8px', fontSize: '0.88rem', color: '#0d47a1', lineHeight: '1.6' }}>
-                  <strong>ðŸ›ï¸ How to Claim Your 4% KCC at the Bank:</strong>
+                <div style={{ background: '#FEF3DC', borderLeft: '4px solid #D58511', padding: '14px 18px', borderRadius: '8px', fontSize: '0.88rem', color: '#5A3E2B', lineHeight: '1.6' }}>
+                  <strong>🏛️ How to Claim Your 4% KCC at the Bank:</strong>
                   <div style={{ marginTop: '4px' }}>
                     1. Carry your latest <strong>Pahani / 7-12 RoR</strong> and <strong>Aadhaar Card</strong>.<br/>
                     2. Request the branch manager for a <strong>Crop Loan under NABARD Scale of Finance for {calcResult.crop}</strong>.<br/>
-                    3. Since your credit limit is {calcResult.collateral_free ? 'under â‚¹1.60 Lakh, the bank CANNOT demand mortgage or registration charges' : 'covered under standard crop hypothecation'}.<br/>
+                    3. Since your credit limit is {calcResult.collateral_free ? 'under ₹1.60 Lakh, the bank CANNOT demand mortgage or registration charges' : 'covered under standard crop hypothecation'}.<br/>
                     4. Pay back or roll over within <strong>12 months</strong> to secure the 3% Prompt Repayment Subvention, keeping your net interest rate at exactly <strong>4.0%</strong>!
                   </div>
                 </div>
@@ -549,19 +549,19 @@ const GovtLoansHub = () => {
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '18px' }}>
             {[
               { id: 'all', label: 'All Schemes' },
-              { id: 'crop_loan', label: 'ðŸŒ¾ Crop Credit (KCC)' },
-              { id: 'infrastructure', label: 'ðŸ—ï¸ Infrastructure & Cold Storage (AIF)' },
-              { id: 'solar_energy', label: 'â˜€ï¸ Solar Water Pumps (PM-KUSUM)' },
-              { id: 'processing', label: 'ðŸ­ Food Processing (PMFME)' },
-              { id: 'women_empowerment', label: 'ðŸ‘©â€ðŸŒ¾ Women SHG Credit (Stree Nidhi)' }
+              { id: 'crop_loan', label: '🌾 Crop Credit (KCC)' },
+              { id: 'infrastructure', label: '🏗️ Infrastructure & Cold Storage (AIF)' },
+              { id: 'solar_energy', label: '☀️ Solar Water Pumps (PM-KUSUM)' },
+              { id: 'processing', label: '🏭 Food Processing (PMFME)' },
+              { id: 'women_empowerment', label: '👩‍🌾 Women SHG Credit (Stree Nidhi)' }
             ].map(cat => (
               <button
                 key={cat.id}
                 onClick={() => setFilterCat(cat.id)}
                 style={{
                   background: filterCat === cat.id ? 'var(--primary)' : 'white',
-                  color: filterCat === cat.id ? 'white' : 'var(--primary)',
-                  border: '1px solid var(--primary)',
+                  color: filterCat === cat.id ? 'white' : 'var(--text-dark)',
+                  border: '1px solid var(--border-color)',
                   padding: '6px 14px',
                   borderRadius: '20px',
                   fontSize: '0.82rem',
@@ -579,57 +579,57 @@ const GovtLoansHub = () => {
               <div key={sch.id} className="glass-panel" style={{ padding: '22px', borderLeft: '6px solid var(--primary)', background: 'white' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '10px', marginBottom: '10px' }}>
                   <div>
-                    <h3 style={{ margin: '0 0 4px 0', color: 'var(--primary)' }}>{sch.name}</h3>
-                    <div style={{ fontSize: '0.8rem', color: '#666' }}>{sch.ministry}</div>
+                    <h3 style={{ margin: '0 0 4px 0', color: 'var(--text-dark)' }}>{sch.name}</h3>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>{sch.ministry}</div>
                   </div>
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    <span style={{ background: '#e8f5e9', color: '#1b5e20', padding: '4px 10px', borderRadius: '12px', fontSize: '0.78rem', fontWeight: 'bold' }}>
+                    <span style={{ background: '#DDE8D5', color: '#5A3E2B', padding: '4px 10px', borderRadius: '12px', fontSize: '0.78rem', fontWeight: 'bold' }}>
                       {sch.interest_rate}
                     </span>
                     <button
                       onClick={() => handleShareSchemeWhatsApp(sch)}
                       style={{ background: '#25D366', color: 'white', border: 'none', padding: '4px 12px', borderRadius: '15px', fontSize: '0.78rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
                     >
-                      ðŸ“² WhatsApp Share
+                      📱 WhatsApp Share
                     </button>
                   </div>
                 </div>
 
-                <p style={{ margin: '0 0 14px 0', fontSize: '0.9rem', color: '#333', lineHeight: '1.5' }}>
+                <p style={{ margin: '0 0 14px 0', fontSize: '0.9rem', color: 'var(--text-dark)', lineHeight: '1.5' }}>
                   {sch.description}
                 </p>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px', background: '#f9f9f9', padding: '14px', borderRadius: '8px', fontSize: '0.84rem', marginBottom: '14px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px', background: '#F4F7F0', padding: '14px', borderRadius: '8px', fontSize: '0.84rem', marginBottom: '14px' }}>
                   <div>
-                    <strong style={{ color: 'var(--primary)', display: 'block', marginBottom: '2px' }}>ðŸ’° Maximum Loan / Project Cap:</strong>
+                    <strong style={{ color: 'var(--text-dark)', display: 'block', marginBottom: '2px' }}>💰 Maximum Loan / Project Cap:</strong>
                     {sch.max_amount}
                   </div>
                   <div>
-                    <strong style={{ color: 'var(--primary)', display: 'block', marginBottom: '2px' }}>ðŸŽ Subsidy & Subvention:</strong>
+                    <strong style={{ color: 'var(--text-dark)', display: 'block', marginBottom: '2px' }}>🎁 Subsidy & Subvention:</strong>
                     {sch.subsidy_grant}
                   </div>
                   <div>
-                    <strong style={{ color: 'var(--primary)', display: 'block', marginBottom: '2px' }}>ðŸ›¡ï¸ Collateral Requirements:</strong>
+                    <strong style={{ color: 'var(--text-dark)', display: 'block', marginBottom: '2px' }}>🛡️ Collateral Requirements:</strong>
                     {sch.collateral_requirement}
                   </div>
                   <div>
-                    <strong style={{ color: 'var(--primary)', display: 'block', marginBottom: '2px' }}>ðŸ“„ Key Documents:</strong>
+                    <strong style={{ color: 'var(--text-dark)', display: 'block', marginBottom: '2px' }}>📄 Key Documents:</strong>
                     {sch.documents_required?.join(', ')}
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-                  <div style={{ fontSize: '0.82rem', color: '#555' }}>
-                    ðŸ“ž Helpline: <strong>{sch.helpline || '1800-180-1551'}</strong>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--text-light)' }}>
+                    📞 Helpline: <strong>{sch.helpline || '1800-180-1551'}</strong>
                   </div>
                   <a
                     href={sch.apply_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="btn-primary"
+                    className="btn-accent"
                     style={{ textDecoration: 'none', fontSize: '0.84rem', padding: '8px 16px', display: 'inline-block' }}
                   >
-                    Apply on Official Portal â†—
+                    Apply on Official Portal ↗
                   </a>
                 </div>
               </div>
@@ -642,4 +642,3 @@ const GovtLoansHub = () => {
 }
 
 export default GovtLoansHub
-

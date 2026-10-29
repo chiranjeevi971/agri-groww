@@ -31,6 +31,10 @@ app.add_middleware(
 def read_root():
     return {"message": "Welcome to AgriGrow AI API", "status": "live", "version": "1.0.0"}
 
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
+
 import auth
 
 @app.post("/users/register", response_model=schemas.User)
@@ -365,5 +369,10 @@ def generate_whatsapp_notification(req: schemas.NotificationPayloadRequest):
         "whatsapp_url": payload.get("share_url"),
         "message": payload.get("message_text")
     }
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.environ.get("PORT", 10000))
+    uvicorn.run("main:app", host="0.0.0.0", port=port)
 
 

@@ -4,6 +4,7 @@ from datetime import date
 
 class UserBase(BaseModel):
     phone_number: str
+    full_name: Optional[str] = None
     language: str = "en"
     village: Optional[str] = None
 
@@ -16,6 +17,7 @@ class UserLogin(BaseModel):
 
 class User(UserBase):
     id: int
+    created_at: Optional[date] = None
     
     class Config:
         from_attributes = True
@@ -39,17 +41,45 @@ class Farm(FarmBase):
 
 class CropBase(BaseModel):
     name: str
-    farming_method: str
-    plant_date: date
+    farming_method: str = "conventional"
+    plant_date: Optional[date] = None
     status: str = "active"
+    acres_allocated: Optional[float] = 1.0
+    sowing_date: Optional[date] = None
+    expected_harvest_date: Optional[date] = None
+    district_id: Optional[str] = None
+    soil_n: Optional[float] = None
+    soil_p: Optional[float] = None
+    soil_k: Optional[float] = None
+    soil_ph: Optional[float] = None
+    water_source: Optional[str] = None
+    location_name: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
 
 class CropCreate(CropBase):
     pass
 
 class Crop(CropBase):
     id: int
-    farm_id: int
+    farm_id: Optional[int] = None
     
+    class Config:
+        from_attributes = True
+
+class DiseaseRecordCreate(BaseModel):
+    crop_id: Optional[int] = None
+    crop_name: str
+    disease_name: str
+    confidence: float
+    detected_date: Optional[date] = None
+    symptoms: str
+    treatment: str
+    image_url: Optional[str] = None
+
+class DiseaseRecord(DiseaseRecordCreate):
+    id: int
+
     class Config:
         from_attributes = True
 

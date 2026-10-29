@@ -27,6 +27,15 @@
   --accent-dark:    #B36E0D;   /* Deep amber — pressed accent states */
   --accent-bg:      #FEF3DC;   /* Amber tint background — alert cards, banners */
 
+  /* --- NEW: High-Contrast Active State Colors --- */
+  --jet-black:      #121212;   /* Jet Black — dark backgrounds, selected overlays */
+  --amethyst:       #7B1FA2;   /* Royal Amethyst — selected crop badges, active modals */
+  --amethyst-light: #9C27B0;   /* Lighter amethyst — hover on amethyst elements */
+  --amethyst-bg:    rgba(123, 31, 162, 0.12); /* Amethyst tint background */
+  --cyan-glow:      #00E5FF;   /* Electric Cyan — active tabs, focus rings, glows */
+  --cyan-dark:      #00B4D8;   /* Darker cyan — pressed/active cyan states */
+  --cyan-bg:        rgba(0, 229, 255, 0.10);  /* Cyan tint background */
+
   /* --- Glass & Shadows --- */
   --glass-bg:       rgba(244, 247, 240, 0.80);   /* Sage-tinted glass panels */
   --glass-border:   rgba(135, 169, 107, 0.25);   /* Sage-tinted glass border */
@@ -51,6 +60,10 @@
 /* ============================================================
    RESET & BASE
    ============================================================ */
+html {
+  scroll-behavior: smooth;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -245,7 +258,7 @@ input::placeholder {
 .news-ticker-text {
   display: inline-block;
   white-space: nowrap;
-  animation: ticker 40s linear infinite;
+  animation: ticker 80s linear infinite;
   padding-left: 100%;
 }
 
@@ -288,6 +301,46 @@ input::placeholder {
   font-size: 0.75rem;
   font-weight: 700;
   display: inline-block;
+}
+
+/* Royal Amethyst badge — selected crop #1 rank, premium status */
+.badge-amethyst {
+  background: linear-gradient(135deg, var(--amethyst), #4A148C);
+  color: #ffffff;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(123, 31, 162, 0.4);
+  display: inline-block;
+}
+
+/* Electric Cyan badge — active indicator, live status */
+.badge-cyan {
+  background: rgba(0, 229, 255, 0.15);
+  color: var(--cyan-glow);
+  border: 1px solid var(--cyan-glow);
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: inline-block;
+}
+
+/* Jet Black & Cyan Active High-Contrast button */
+.btn-contrast-active {
+  background: var(--jet-black) !important;
+  color: #ffffff !important;
+  border: 1.5px solid var(--cyan-glow) !important;
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.45) !important;
+}
+
+/* Jet Black & Cyan Active High-Contrast Card */
+.card-selected-contrast {
+  background: linear-gradient(135deg, #181818, #221528) !important;
+  color: #ffffff !important;
+  border: 2px solid var(--cyan-glow) !important;
+  box-shadow: 0 8px 30px rgba(0, 229, 255, 0.35) !important;
 }
 
 /* ============================================================

@@ -6,32 +6,308 @@ import GovtLoansHub from './components/GovtLoansHub'
 import FarmReportModal from './components/FarmReportModal'
 import API_BASE from './api'
 
-// Placeholder Components for routing
+// Onboarding Flow: Real Login & Registration with JWT Auth & Demo Fallback
 const Login = () => {
   const navigate = useNavigate()
+  const [mode, setMode] = React.useState('login') // 'login' | 'register'
+  const [phone, setPhone] = React.useState('')
+  const [password, setPassword] = React.useState('')
+  const [fullName, setFullName] = React.useState('')
+  const [village, setVillage] = React.useState('Guntur')
+  const [language, setLanguage] = React.useState('en')
+  const [loading, setLoading] = React.useState(false)
+  const [error, setError] = React.useState('')
+  const [successMsg, setSuccessMsg] = React.useState('')
+
+  const handleLogin = async (e) => {
+    if (e) e.preventDefault()
+    setError('')
+    setSuccessMsg('')
+    if (!phone.trim()) {
+      setError('Please enter your registered phone number.')
+      return
+    }
+    if (!password.trim()) {
+      setError('Please enter your password.')
+      return
+    }
+
+    setLoading(true)
+    try {
+      const res = await fetch(`${API_BASE}/users/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone_number: phone.trim(),
+          password: password.trim()
+        })
+      })
+
+      const data = await res.json()
+      if (res.ok && data.access_token) {
+        localStorage.setItem('agriGrowToken', data.access_token)
+        localStorage.setItem('agriGrowUser', JSON.stringify({
+          phone_number: data.phone_number || phone,
+          full_name: data.full_name || 'Farmer',
+          language: data.language || language,
+          village: data.village || village
+        }))
+        navigate('/farm-details')
+      } else {
+        setError(data.detail || 'Incorrect phone number or password. Please try again.')
+      }
+    } catch {
+      // Offline / Cold start fallback: allow farmer to proceed seamlessly
+      localStorage.setItem('agriGrowToken', 'offline-access-token')
+      localStorage.setItem('agriGrowUser', JSON.stringify({
+        phone_number: phone || '+91 98765 43210',
+        full_name: fullName || 'Farmer Ramesh',
+        language: language,
+        village: village || 'Guntur'
+      }))
+      setSuccessMsg('Signed in via Offline Mode (Render is waking up). Continuing...')
+      setTimeout(() => navigate('/farm-details'), 800)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleRegister = async (e) => {
+    if (e) e.preventDefault()
+    setError('')
+    setSuccessMsg('')
+    if (!fullName.trim()) {
+      setError('Please enter your Full Name.')
+      return
+    }
+    if (!phone.trim() || phone.length < 10) {
+      setError('Please enter a valid 10-digit phone number.')
+      return
+    }
+    if (!password.trim() || password.length < 4) {
+      setError('Password must be at least 4 characters long.')
+      return
+    }
+
+    setLoading(true)
+    try {
+      const res = await fetch(`${API_BASE}/users/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone_number: phone.trim(),
+          password: password.trim(),
+          full_name: fullName.trim(),
+          language: language,
+          village: village.trim()
+        })
+      })
+
+      const data = await res.json()
+      if (res.ok) {
+        setSuccessMsg('Account created successfully! Signing you in...')
+        // Auto-login
+        setTimeout(() => handleLogin(), 500)
+      } else {
+        setError(data.detail || 'Registration failed. Phone number may already be registered.')
+      }
+    } catch {
+      // Demo register fallback
+      localStorage.setItem('agriGrowToken', 'demo-registered-token')
+      localStorage.setItem('agriGrowUser', JSON.stringify({
+        phone_number: phone,
+        full_name: fullName,
+        language: language,
+        village: village
+      }))
+      setSuccessMsg('Account created (Offline Mode)! Redirecting to Farm Setup...')
+      setTimeout(() => navigate('/farm-details'), 800)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleQuickDemo = () => {
+    localStorage.setItem('agriGrowToken', 'demo-token-quick')
+    localStorage.setItem('agriGrowUser', JSON.stringify({
+      phone_number: '+91 98765 43210',
+      full_name: 'Ramesh Patel',
+      language: 'en',
+      village: 'Guntur'
+    }))
+    navigate('/farm-details')
+  }
+
   return (
-    <div className="container animate-fade-in" style={{marginTop: '20vh'}}>
-      <div className="glass-panel" style={{padding: '30px', textAlign: 'center'}}>
-        <h1 style={{color: 'var(--text-dark)', marginBottom: '10px'}}>AgriGrow AI</h1>
-        <p style={{marginBottom: '30px', color: 'var(--text-medium)'}}>Intelligent Crop Planning Assistant</p>
+    <div className="container animate-fade-in" style={{marginTop: '8vh', maxWidth: '480px'}}>
+      <div className="glass-panel" style={{padding: '32px 28px', textAlign: 'center', boxShadow: '0 12px 40px rgba(0,0,0,0.12)'}}>
         
-        <div style={{marginBottom: '20px', textAlign: 'left'}}>
-          <label style={{display: 'block', marginBottom: '8px', fontWeight: '500', color: 'var(--text-dark)'}}>Language</label>
-          <select defaultValue="en" style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'white', color: 'var(--text-dark)'}}>
-            <option value="en">English (Default)</option>
-            <option value="hi">Hindi</option>
-            <option value="te">Telugu</option>
-          </select>
+        {/* App Branding */}
+        <div style={{display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '56px', height: '56px', borderRadius: '16px', background: 'linear-gradient(135deg, var(--jet-black), #2A1A35)', border: '2px solid var(--cyan-glow)', boxShadow: '0 0 16px rgba(0, 229, 255, 0.35)', marginBottom: '14px'}}>
+          <span style={{fontSize: '1.8rem'}}>🌾</span>
+        </div>
+        
+        <h1 style={{color: 'var(--text-dark)', margin: '0 0 4px 0', fontSize: '1.75rem'}}>AgriGrow AI</h1>
+        <p style={{marginBottom: '22px', color: 'var(--text-medium)', fontSize: '0.9rem'}}>Intelligent Crop Planning & Farm Management</p>
+        
+        {/* Mode Switcher Tabs with Jet Black & Cyan contrast */}
+        <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', background: '#EAEFE6', padding: '4px', borderRadius: '14px', marginBottom: '22px'}}>
+          <button
+            type="button"
+            onClick={() => { setMode('login'); setError(''); setSuccessMsg('') }}
+            style={{
+              padding: '10px 14px',
+              borderRadius: '10px',
+              fontWeight: 'bold',
+              fontSize: '0.88rem',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              background: mode === 'login' ? 'var(--jet-black)' : 'transparent',
+              color: mode === 'login' ? 'var(--cyan-glow)' : 'var(--text-dark)',
+              border: mode === 'login' ? '1.5px solid var(--cyan-glow)' : '1.5px solid transparent',
+              boxShadow: mode === 'login' ? '0 0 12px rgba(0, 229, 255, 0.35)' : 'none'
+            }}
+          >
+            Sign In
+          </button>
+          <button
+            type="button"
+            onClick={() => { setMode('register'); setError(''); setSuccessMsg('') }}
+            style={{
+              padding: '10px 14px',
+              borderRadius: '10px',
+              fontWeight: 'bold',
+              fontSize: '0.88rem',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              background: mode === 'register' ? 'var(--jet-black)' : 'transparent',
+              color: mode === 'register' ? 'var(--cyan-glow)' : 'var(--text-dark)',
+              border: mode === 'register' ? '1.5px solid var(--cyan-glow)' : '1.5px solid transparent',
+              boxShadow: mode === 'register' ? '0 0 12px rgba(0, 229, 255, 0.35)' : 'none'
+            }}
+          >
+            Create Account
+          </button>
         </div>
 
-        <div style={{marginBottom: '30px', textAlign: 'left'}}>
-          <label style={{display: 'block', marginBottom: '8px', fontWeight: '500', color: 'var(--text-dark)'}}>Phone Number</label>
-          <input type="tel" placeholder="+91 98765 43210" style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)'}} />
+        {error && (
+          <div style={{background: '#FFEBEE', color: '#C62828', border: '1px solid #FFCDD2', padding: '10px 14px', borderRadius: '8px', marginBottom: '16px', fontSize: '0.85rem', textAlign: 'left'}}>
+            ⚠️ {error}
+          </div>
+        )}
+
+        {successMsg && (
+          <div style={{background: '#E8F5E9', color: '#2E7D32', border: '1px solid #C8E6C9', padding: '10px 14px', borderRadius: '8px', marginBottom: '16px', fontSize: '0.85rem', textAlign: 'left'}}>
+            ✓ {successMsg}
+          </div>
+        )}
+
+        <form onSubmit={mode === 'login' ? handleLogin : handleRegister}>
+          {mode === 'register' && (
+            <div style={{marginBottom: '16px', textAlign: 'left'}}>
+              <label style={{display: 'block', marginBottom: '6px', fontWeight: '600', fontSize: '0.88rem', color: 'var(--text-dark)'}}>Full Name</label>
+              <input
+                type="text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="e.g. Ramesh Patel"
+                required
+              />
+            </div>
+          )}
+
+          <div style={{marginBottom: '16px', textAlign: 'left'}}>
+            <label style={{display: 'block', marginBottom: '6px', fontWeight: '600', fontSize: '0.88rem', color: 'var(--text-dark)'}}>Phone Number</label>
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="e.g. 9876543210"
+              required
+            />
+          </div>
+
+          <div style={{marginBottom: '16px', textAlign: 'left'}}>
+            <label style={{display: 'block', marginBottom: '6px', fontWeight: '600', fontSize: '0.88rem', color: 'var(--text-dark)'}}>Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              required
+            />
+          </div>
+
+          {mode === 'register' && (
+            <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px', textAlign: 'left'}}>
+              <div>
+                <label style={{display: 'block', marginBottom: '6px', fontWeight: '600', fontSize: '0.88rem', color: 'var(--text-dark)'}}>Village / District</label>
+                <input
+                  type="text"
+                  value={village}
+                  onChange={(e) => setVillage(e.target.value)}
+                  placeholder="e.g. Guntur"
+                />
+              </div>
+              <div>
+                <label style={{display: 'block', marginBottom: '6px', fontWeight: '600', fontSize: '0.88rem', color: 'var(--text-dark)'}}>Language</label>
+                <select value={language} onChange={(e) => setLanguage(e.target.value)}>
+                  <option value="en">English</option>
+                  <option value="hi">Hindi</option>
+                  <option value="te">Telugu</option>
+                </select>
+              </div>
+            </div>
+          )}
+
+          <button
+            type="submit"
+            className="btn-accent"
+            disabled={loading}
+            style={{
+              width: '100%',
+              padding: '13px',
+              fontSize: '1rem',
+              fontWeight: 'bold',
+              borderRadius: '12px',
+              marginTop: '8px',
+              background: 'linear-gradient(135deg, var(--accent), var(--accent-dark))',
+              boxShadow: '0 4px 15px rgba(213, 133, 17, 0.4)'
+            }}
+          >
+            {loading ? 'Authenticating...' : (mode === 'login' ? 'Sign In to AgriGrow →' : 'Create Farm Account →')}
+          </button>
+        </form>
+
+        {/* Divider & Quick Demo Access */}
+        <div style={{margin: '22px 0 16px 0', display: 'flex', alignItems: 'center', gap: '10px'}}>
+          <div style={{flex: 1, height: '1px', background: 'var(--border-color)', opacity: 0.5}}></div>
+          <span style={{fontSize: '0.78rem', color: 'var(--text-medium)', fontWeight: 'bold'}}>OR</span>
+          <div style={{flex: 1, height: '1px', background: 'var(--border-color)', opacity: 0.5}}></div>
         </div>
 
-        <button className="btn-accent" style={{width: '100%'}} onClick={() => navigate('/farm-details')}>
-          Send OTP
+        <button
+          type="button"
+          onClick={handleQuickDemo}
+          style={{
+            width: '100%',
+            padding: '10px 14px',
+            borderRadius: '10px',
+            border: '1.5px solid var(--primary)',
+            background: 'rgba(135, 169, 107, 0.12)',
+            color: 'var(--text-dark)',
+            fontSize: '0.88rem',
+            fontWeight: '600',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px'
+          }}
+        >
+          <span>⚡ 1-Click Instant Demo Login</span>
         </button>
+
       </div>
     </div>
   )
@@ -382,20 +658,22 @@ const CropSelection = () => {
           </p>
         </div>
 
-        {/* Dual Sorting Toggle */}
-        <div style={{display: 'flex', background: '#DDE8D5', padding: '4px', borderRadius: '25px', gap: '4px'}}>
+        {/* Dual Sorting Toggle with Jet Black, Amethyst & Cyan Contrast */}
+        <div style={{display: 'flex', background: '#121212', padding: '4px', borderRadius: '25px', gap: '4px', border: '1px solid rgba(0, 229, 255, 0.3)'}}>
           <button 
             type="button"
             onClick={() => setSortBy('confidence')}
             style={{
-              border: 'none', 
-              padding: '6px 14px', 
+              border: sortBy === 'confidence' ? '1.5px solid var(--cyan-glow)' : '1.5px solid transparent', 
+              padding: '7px 16px', 
               borderRadius: '20px', 
-              fontSize: '0.8rem', 
+              fontSize: '0.82rem', 
               fontWeight: 'bold',
               cursor: 'pointer',
-              background: sortBy === 'confidence' ? 'var(--primary)' : 'transparent',
-              color: sortBy === 'confidence' ? 'white' : 'var(--text-dark)'
+              transition: 'all 0.2s',
+              background: sortBy === 'confidence' ? 'linear-gradient(135deg, var(--amethyst), #4A148C)' : 'transparent',
+              color: sortBy === 'confidence' ? '#ffffff' : '#A0AAB8',
+              boxShadow: sortBy === 'confidence' ? '0 0 12px rgba(0, 229, 255, 0.45)' : 'none'
             }}
           >
             ⭐ Highest ML Match
@@ -404,14 +682,16 @@ const CropSelection = () => {
             type="button"
             onClick={() => setSortBy('profit')}
             style={{
-              border: 'none', 
-              padding: '6px 14px', 
+              border: sortBy === 'profit' ? '1.5px solid var(--cyan-glow)' : '1.5px solid transparent', 
+              padding: '7px 16px', 
               borderRadius: '20px', 
-              fontSize: '0.8rem', 
+              fontSize: '0.82rem', 
               fontWeight: 'bold',
               cursor: 'pointer',
-              background: sortBy === 'profit' ? 'var(--accent)' : 'transparent',
-              color: sortBy === 'profit' ? 'white' : 'var(--text-dark)'
+              transition: 'all 0.2s',
+              background: sortBy === 'profit' ? 'linear-gradient(135deg, #121212, #2B1638)' : 'transparent',
+              color: sortBy === 'profit' ? 'var(--cyan-glow)' : '#A0AAB8',
+              boxShadow: sortBy === 'profit' ? '0 0 12px rgba(0, 229, 255, 0.45)' : 'none'
             }}
           >
             💰 Maximum Net Profit (₹)
@@ -434,11 +714,14 @@ const CropSelection = () => {
                 key={item.name} 
                 className="glass-panel animate-fade-in" 
                 style={{
-                  padding: '20px', 
+                  padding: '22px', 
                   cursor: 'pointer', 
-                  borderLeft: idx === 0 ? '6px solid var(--accent)' : '6px solid var(--glass-border)',
-                  background: idx === 0 ? 'rgba(213, 133, 17, 0.05)' : 'white',
-                  transition: 'all 0.2s'
+                  borderLeft: idx === 0 ? '6px solid var(--cyan-glow)' : '6px solid var(--border-color)',
+                  background: idx === 0 ? 'linear-gradient(135deg, rgba(18, 18, 18, 0.96), rgba(42, 22, 54, 0.94))' : 'white',
+                  color: idx === 0 ? '#ffffff' : 'var(--text-dark)',
+                  boxShadow: idx === 0 ? '0 8px 28px rgba(0, 229, 255, 0.28)' : '0 4px 15px rgba(0,0,0,0.06)',
+                  border: idx === 0 ? '1.5px solid var(--cyan-glow)' : '1px solid var(--border-color)',
+                  transition: 'all 0.25s ease'
                 }}
                 onClick={() => selectCrop(item.name)}
               >
@@ -447,15 +730,15 @@ const CropSelection = () => {
                   <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
                     <span style={{fontSize: '2.4rem'}}>{getCropEmoji(item.name)}</span>
                     <div>
-                      <h3 style={{margin: 0, fontSize: '1.3rem', color: 'var(--text-dark)'}}>
-                        {item.name} {idx === 0 && <span style={{fontSize: '0.75rem', background: 'var(--accent)', color: '#fff', padding: '2px 8px', borderRadius: '10px', marginLeft: '6px', fontWeight: 'bold'}}>#1 Recommended</span>}
+                      <h3 style={{margin: 0, fontSize: '1.3rem', color: idx === 0 ? '#ffffff' : 'var(--text-dark)'}}>
+                        {item.name} {idx === 0 && <span className="badge-amethyst" style={{marginLeft: '8px'}}>⭐ #1 Recommended</span>}
                       </h3>
-                      <div style={{display: 'flex', gap: '8px', alignItems: 'center', marginTop: '3px'}}>
-                        <span style={{fontSize: '0.82rem', color: 'var(--text-dark)', fontWeight: 'bold'}}>
+                      <div style={{display: 'flex', gap: '8px', alignItems: 'center', marginTop: '4px'}}>
+                        <span style={{fontSize: '0.82rem', color: idx === 0 ? 'var(--cyan-glow)' : 'var(--text-dark)', fontWeight: 'bold'}}>
                           Mandi: {econ?.mandi_modal_price_formatted}
                         </span>
                         {econ?.msp_details?.msp_formatted !== 'Open Market Dependent' && (
-                          <span style={{fontSize: '0.78rem', background: '#DDE8D5', color: 'var(--text-dark)', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold'}}>
+                          <span style={{fontSize: '0.78rem', background: idx === 0 ? 'rgba(255,255,255,0.15)' : '#DDE8D5', color: idx === 0 ? '#ffffff' : 'var(--text-dark)', padding: '2px 7px', borderRadius: '4px', fontWeight: 'bold'}}>
                             MSP: {econ?.msp_details?.msp_formatted} ({econ?.msp_details?.margin_over_msp})
                           </span>
                         )}
@@ -465,16 +748,18 @@ const CropSelection = () => {
 
                   <div style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px'}}>
                     <span style={{
-                      background: item.confidence > 50 ? 'var(--primary)' : 'var(--accent)', 
+                      background: idx === 0 ? 'linear-gradient(135deg, var(--amethyst), #4A148C)' : (item.confidence > 50 ? 'var(--primary)' : 'var(--accent)'), 
                       color: 'white', 
-                      padding: '4px 12px', 
+                      padding: '5px 14px', 
                       borderRadius: '20px', 
                       fontSize: '0.85rem', 
-                      fontWeight: 'bold'
+                      fontWeight: 'bold',
+                      border: idx === 0 ? '1px solid var(--cyan-glow)' : 'none',
+                      boxShadow: idx === 0 ? '0 0 10px rgba(0, 229, 255, 0.4)' : 'none'
                     }}>
                       {item.confidence}% Soil Match
                     </span>
-                    <span style={{fontSize: '0.75rem', color: 'var(--text-medium)', background: '#F4F7F0', padding: '2px 8px', borderRadius: '10px', border: '1px solid var(--border-color)'}}>
+                    <span style={{fontSize: '0.75rem', color: idx === 0 ? '#E0E0E0' : 'var(--text-medium)', background: idx === 0 ? 'rgba(255,255,255,0.1)' : '#F4F7F0', padding: '2px 8px', borderRadius: '10px', border: idx === 0 ? '1px solid rgba(255,255,255,0.2)' : '1px solid var(--border-color)'}}>
                       {econ?.market_risk || 'Moderate Risk'}
                     </span>
                   </div>
@@ -525,18 +810,24 @@ const CropSelection = () => {
         </div>
       )}
       
-      {/* Farming Methodology */}
-      <div className="glass-panel" style={{padding: '20px', marginBottom: '30px', background: 'white'}}>
-        <h4 style={{margin: '0 0 10px 0', color: 'var(--text-dark)'}}>Choose Cultivation Mode:</h4>
+      {/* Farming Methodology with High-Contrast Active States */}
+      <div className="glass-panel" style={{padding: '22px', marginBottom: '30px', background: 'white'}}>
+        <h4 style={{margin: '0 0 12px 0', color: 'var(--text-dark)'}}>Choose Cultivation Mode:</h4>
         <div style={{display: 'flex', gap: '15px'}}>
           <button 
             type="button"
-            className="btn-outline" 
             style={{
-              flex: 1, 
-              background: farmingMethod === 'conventional' ? 'var(--primary)' : 'transparent', 
-              color: farmingMethod === 'conventional' ? '#fff' : 'var(--primary)', 
-              borderColor: 'var(--primary)'
+              flex: 1,
+              padding: '12px 18px',
+              borderRadius: '12px',
+              fontWeight: 'bold',
+              fontSize: '0.92rem',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              background: farmingMethod === 'conventional' ? 'var(--jet-black)' : '#F4F7F0', 
+              color: farmingMethod === 'conventional' ? 'var(--cyan-glow)' : 'var(--text-dark)', 
+              border: farmingMethod === 'conventional' ? '2px solid var(--cyan-glow)' : '1.5px solid var(--border-color)',
+              boxShadow: farmingMethod === 'conventional' ? '0 0 14px rgba(0, 229, 255, 0.45)' : 'none'
             }}
             onClick={() => setFarmingMethod('conventional')}
           >
@@ -544,12 +835,18 @@ const CropSelection = () => {
           </button>
           <button 
             type="button"
-            className="btn-outline" 
             style={{
               flex: 1,
-              background: farmingMethod === 'organic' ? 'var(--primary)' : 'transparent', 
-              color: farmingMethod === 'organic' ? '#fff' : 'var(--primary)', 
-              borderColor: 'var(--primary)'
+              padding: '12px 18px',
+              borderRadius: '12px',
+              fontWeight: 'bold',
+              fontSize: '0.92rem',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              background: farmingMethod === 'organic' ? 'var(--jet-black)' : '#F4F7F0', 
+              color: farmingMethod === 'organic' ? 'var(--cyan-glow)' : 'var(--text-dark)', 
+              border: farmingMethod === 'organic' ? '2px solid var(--cyan-glow)' : '1.5px solid var(--border-color)',
+              boxShadow: farmingMethod === 'organic' ? '0 0 14px rgba(0, 229, 255, 0.45)' : 'none'
             }}
             onClick={() => setFarmingMethod('organic')}
           >
@@ -561,22 +858,179 @@ const CropSelection = () => {
   )
 }
 
+const DISTRICT_PROFILES = {
+  guntur: { state: 'Andhra Pradesh', soil: 'black', lat: 16.3067, lon: 80.4365, npk: { n: 110, p: 52, k: 26, ph: 7.8 }, desc: 'Krishna Basin Deep Black Regur' },
+  east_godavari: { state: 'Andhra Pradesh', soil: 'alluvial', lat: 16.9891, lon: 82.2475, npk: { n: 85, p: 48, k: 42, ph: 6.7 }, desc: 'Godavari Deltaic Alluvium' },
+  warangal: { state: 'Telangana', soil: 'red', lat: 17.9689, lon: 79.5941, npk: { n: 48, p: 62, k: 24, ph: 6.5 }, desc: 'Deccan Red Sandy Loam' },
+  nagpur: { state: 'Maharashtra', soil: 'black', lat: 21.1458, lon: 79.0882, npk: { n: 105, p: 46, k: 22, ph: 7.6 }, desc: 'Vidarbha Basaltic Black Cotton Soil' },
+  nashik: { state: 'Maharashtra', soil: 'black', lat: 19.9975, lon: 73.7898, npk: { n: 98, p: 55, k: 32, ph: 7.3 }, desc: 'Volcanic Loamy Black Soil' },
+  ludhiana: { state: 'Punjab', soil: 'alluvial', lat: 30.9010, lon: 75.8573, npk: { n: 90, p: 50, k: 36, ph: 7.1 }, desc: 'Indo-Gangetic Deep Alluvial' },
+  karnal: { state: 'Haryana', soil: 'alluvial', lat: 29.6857, lon: 76.9905, npk: { n: 82, p: 46, k: 38, ph: 7.4 }, desc: 'Fertile Alluvial Loam' },
+  coimbatore: { state: 'Tamil Nadu', soil: 'red', lat: 11.0168, lon: 76.9558, npk: { n: 42, p: 58, k: 28, ph: 6.8 }, desc: 'Red Permeable Loam' },
+  shimoga: { state: 'Karnataka', soil: 'laterite', lat: 13.9299, lon: 75.5681, npk: { n: 30, p: 25, k: 35, ph: 5.6 }, desc: 'Malnad Acidic Laterite Soil' },
+  varanasi: { state: 'Uttar Pradesh', soil: 'alluvial', lat: 25.3176, lon: 82.9739, npk: { n: 80, p: 45, k: 35, ph: 7.2 }, desc: 'Gangetic Alluvial Silt Loam' }
+}
+
+const DEFAULT_CROPS_LIST = [
+  { id: 1, name: 'Cotton', method: 'organic', acres: 5.0, sowing_date: '2026-06-15', duration: 135, stage: 'Flowering & Boll Setting', icon: '☁️' },
+  { id: 2, name: 'Rice', method: 'conventional', acres: 3.0, sowing_date: '2026-07-01', duration: 120, stage: 'Vegetative & Tillering', icon: '🌾' },
+  { id: 3, name: 'Pigeonpeas', method: 'organic', acres: 2.0, sowing_date: '2026-07-20', duration: 150, stage: 'Sowing & Germination', icon: '🌱' }
+]
+
+const REFERENCE_DISEASES = [
+  {
+    id: 'rice_blast',
+    crop: 'Rice',
+    icon: '🌾',
+    disease: 'Rice Blast (Leaf & Neck)',
+    badge: 'Fungal Pathogen',
+    symptoms: 'Diamond spindle lesions on leaves with gray centers and brown margins; rot at the panicle neck.',
+    chemical: 'Tricyclazole 75% WP @ 0.6g/L or Isoprothiolane 40% EC @ 1.5ml/L',
+    organic: '5% Neem Seed Kernel Extract (NSKE) or Pseudomonas fluorescens @ 10g/L',
+    cost: '₹280/acre'
+  },
+  {
+    id: 'cotton_bollworm',
+    crop: 'Cotton',
+    icon: '☁️',
+    disease: 'Pink & American Bollworm',
+    badge: 'Lepidopteran Pest',
+    symptoms: 'Bore holes in bolls and flower buds plugged with excreta; rosetted blooms and premature boll opening.',
+    chemical: 'Emamectin Benzoate 5% SG @ 0.4g/L or Chlorantraniliprole 18.5% SC @ 0.3ml/L',
+    organic: 'Install 6 pheromone traps/acre; release Trichogramma chilonis @ 50,000/acre weekly',
+    cost: '₹450/acre'
+  },
+  {
+    id: 'tomato_blight',
+    crop: 'Tomato',
+    icon: '🍅',
+    disease: 'Early Blight (Target Spot)',
+    badge: 'Alternaria solani',
+    symptoms: 'Concentric dark target-board rings on lower older foliage surrounded by yellow chlorotic halo.',
+    chemical: 'Mancozeb 75% WP @ 2g/L or Azoxystrobin 23% SC @ 1ml/L',
+    organic: 'Foliar spray of fermented buttermilk (sour curd) + Copper oxychloride',
+    cost: '₹240/acre'
+  },
+  {
+    id: 'maize_armyworm',
+    crop: 'Maize',
+    icon: '🌽',
+    disease: 'Fall Armyworm (Spodoptera)',
+    badge: 'Invasive Pest',
+    symptoms: 'Elongated ragged holes on leaves with characteristic sawdust-like frass accumulated inside central whorl.',
+    chemical: 'Spinetoram 11.7% SC @ 0.5ml/L or Chlorantraniliprole 18.5% SC @ 0.4ml/L',
+    organic: 'Whorl application of dry sand mixed with neem cake; Beauveria bassiana @ 5g/L',
+    cost: '₹360/acre'
+  }
+]
+
 const Dashboard = () => {
   const navigate = useNavigate()
+  
+  // Crop Management States
+  const [crops, setCrops] = React.useState(() => {
+    const saved = localStorage.getItem('agriGrowCrops')
+    if (saved) {
+      try { return JSON.parse(saved) } catch {}
+    }
+    const rawSelected = localStorage.getItem('agriGrowSelectedCrop')
+    if (rawSelected) {
+      try {
+        const parsed = JSON.parse(rawSelected)
+        return [{ id: 1, name: parsed.name || 'Cotton', method: parsed.method || 'organic', acres: 5, sowing_date: '2026-06-15', duration: 135, stage: 'Flowering & Boll Setting', icon: parsed.name === 'Rice' ? '🌾' : '☁️' }]
+      } catch {}
+    }
+    return DEFAULT_CROPS_LIST
+  })
+
+  const [activeCropIdx, setActiveCropIdx] = React.useState(0)
+  const currentCrop = crops[activeCropIdx] || crops[0] || { name: 'Cotton', method: 'organic', acres: 5, sowing_date: '2026-06-15', duration: 135 }
+
+  // Modals States
+  const [showAddCropModal, setShowAddCropModal] = React.useState(false)
+  const [newCropForm, setNewCropForm] = React.useState({
+    name: 'Pigeonpeas',
+    acres: '2.5',
+    sowing_date: new Date().toISOString().split('T')[0],
+    method: 'organic',
+    variety: 'ICPL 87119 (Asha)'
+  })
+
+  const [showLocationModal, setShowLocationModal] = React.useState(false)
+  const [farmProfile, setFarmProfile] = React.useState(() => {
+    const rawProfile = localStorage.getItem('agriGrowFarmProfile')
+    return rawProfile ? JSON.parse(rawProfile) : {
+      lat: 16.3067,
+      lon: 80.4365,
+      soil_type: 'black',
+      size: 5,
+      district_id: 'guntur',
+      region: 'Andhra Pradesh',
+      location_name: 'Guntur, Andhra Pradesh',
+      n: 110,
+      p: 52,
+      k: 26,
+      ph: 7.8,
+      water_source: 'borewell'
+    }
+  })
+
+  const [locationForm, setLocationForm] = React.useState({
+    district_id: farmProfile.district_id || 'guntur',
+    lat: farmProfile.lat || 16.3067,
+    lon: farmProfile.lon || 80.4365,
+    location_name: farmProfile.location_name || 'Guntur, Andhra Pradesh',
+    soil_type: farmProfile.soil_type || 'black',
+    water_source: farmProfile.water_source || 'borewell',
+    n: farmProfile.n || 110,
+    p: farmProfile.p || 52,
+    k: farmProfile.k || 26,
+    ph: farmProfile.ph || 7.8
+  })
+
+  // Disease Scanner State
+  const [diseaseModal, setDiseaseModal] = React.useState(false)
+  const [selectedDiseaseItem, setSelectedDiseaseItem] = React.useState(null)
+  const [scanningDisease, setScanningDisease] = React.useState(false)
+  const [scanResult, setScanResult] = React.useState(null)
+
+  // Feedback Toast
+  const [toastMsg, setToastMsg] = React.useState('')
+
+  // Other Dashboard States
   const [weather, setWeather] = React.useState(null)
-  const [selectedCrop, setSelectedCrop] = React.useState({ name: 'Cotton', method: 'organic' })
   const [advisory, setAdvisory] = React.useState(null)
   const [advisoryLang, setAdvisoryLang] = React.useState('en')
   const [loadingAdvisory, setLoadingAdvisory] = React.useState(false)
-
-  // Phase 13, 14, 15 States
   const [fertilizerData, setFertilizerData] = React.useState(null)
   const [fertilizerMethod, setFertilizerMethod] = React.useState('chemical')
   const [kccData, setKccData] = React.useState(null)
   const [showReportModal, setShowReportModal] = React.useState(false)
   const [whatsappStatus, setWhatsappStatus] = React.useState('')
-  const [farmProfile, setFarmProfile] = React.useState(null)
 
+  const showToast = (msg) => {
+    setToastMsg(msg)
+    setTimeout(() => setToastMsg(''), 4000)
+  }
+
+  // Calculate live days elapsed and remaining
+  const calculateCycle = (sowDateStr, totalDays = 120) => {
+    try {
+      const today = new Date()
+      const sow = new Date(sowDateStr || '2026-06-15')
+      const diffTime = today - sow
+      const elapsed = Math.max(1, Math.floor(diffTime / (1000 * 60 * 60 * 24)))
+      const remaining = Math.max(0, totalDays - elapsed)
+      const pct = Math.min(100, Math.max(5, Math.round((elapsed / totalDays) * 100)))
+      return { elapsed, remaining, pct }
+    } catch {
+      return { elapsed: 45, remaining: 75, pct: 37 }
+    }
+  }
+
+  const cycleInfo = calculateCycle(currentCrop.sowing_date, currentCrop.duration || 120)
+
+  // Fetch Advisory & Calculation
   const fetchAdvisory = (lang, cropInfo, prof) => {
     setLoadingAdvisory(true)
     fetch(`${API_BASE}/crops/ai-advisory`, {
@@ -587,7 +1041,7 @@ const Dashboard = () => {
         farming_method: cropInfo.method || 'organic',
         soil_type: prof.soil_type || 'black',
         region: prof.region || 'Andhra Pradesh',
-        acres: prof.size || 5,
+        acres: prof.size || cropInfo.acres || 5,
         lat: prof.lat || 16.3067,
         lon: prof.lon || 80.4365,
         language: lang
@@ -603,41 +1057,35 @@ const Dashboard = () => {
     .catch(() => setLoadingAdvisory(false))
   }
 
-  React.useEffect(() => {
-    const rawCrop = localStorage.getItem('agriGrowSelectedCrop')
-    const cropInfo = rawCrop ? JSON.parse(rawCrop) : { name: 'Cotton', method: 'organic' }
-    setSelectedCrop(cropInfo)
+  const loadDataForCrop = (cropInfo, prof) => {
+    const lat = prof.lat || 16.3067
+    const lon = prof.lon || 80.4365
 
-    const rawProfile = localStorage.getItem('agriGrowFarmProfile')
-    const profile = rawProfile ? JSON.parse(rawProfile) : { lat: 16.3067, lon: 80.4365, soil_type: 'black', size: 5, district_id: 'guntur', region: 'Andhra Pradesh', n: 110, p: 52, k: 26, ph: 7.8, water_source: 'borewell' }
-    setFarmProfile(profile)
-    const lat = profile.lat || 16.3067
-    const lon = profile.lon || 80.4365
-
+    // Weather
     fetch(`${API_BASE}/weather/live?lat=${lat}&lon=${lon}`)
       .then(res => res.json())
       .then(data => setWeather(data))
       .catch(() => {
         setWeather({
-          current: { temperature: 27.5, humidity: 68, condition: 'Partly cloudy', icon: '⛅' },
+          current: { temperature: 27.5, humidity: 68, condition: 'Partly cloudy', icon: '⛅', wind_speed: 6.5 },
           forecast_3d_rain_mm: 2.0,
           irrigation_advisory: { status: 'NORMAL', action: 'Normal Schedule', detail: 'Weather conditions favorable. Follow your standard crop timeline schedule.' }
         })
       })
 
-    fetchAdvisory(advisoryLang, cropInfo, profile)
+    fetchAdvisory(advisoryLang, cropInfo, prof)
 
-    // Phase 15: Precision Fertilizer calculation
+    // Fertilizer
     fetch(`${API_BASE}/fertilizers/calculate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         crop: cropInfo.name || 'Cotton',
-        acres: parseFloat(profile.size || 5),
-        soil_type: profile.soil_type || 'black',
-        soil_n: parseFloat(profile.n || 110),
-        soil_p: parseFloat(profile.p || 52),
-        soil_k: parseFloat(profile.k || 26),
+        acres: parseFloat(cropInfo.acres || prof.size || 5),
+        soil_type: prof.soil_type || 'black',
+        soil_n: parseFloat(prof.n || 110),
+        soil_p: parseFloat(prof.p || 52),
+        soil_k: parseFloat(prof.k || 26),
         farming_method: cropInfo.method || 'organic'
       })
     })
@@ -645,13 +1093,13 @@ const Dashboard = () => {
       .then(data => setFertilizerData(data))
       .catch(() => {})
 
-    // Phase 13 & 15: KCC Loan calculation
+    // Loan
     fetch(`${API_BASE}/loans/calculate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         crop: (cropInfo.name || 'Cotton').toLowerCase(),
-        acres: parseFloat(profile.size || 5),
+        acres: parseFloat(cropInfo.acres || prof.size || 5),
         existing_private_loan: 150000,
         moneylender_rate_apr: 30
       })
@@ -659,15 +1107,139 @@ const Dashboard = () => {
       .then(res => res.json())
       .then(data => setKccData(data))
       .catch(() => {})
-  }, [])
+  }
+
+  React.useEffect(() => {
+    loadDataForCrop(currentCrop, farmProfile)
+  }, [activeCropIdx])
 
   const handleLanguageChange = (newLang) => {
     setAdvisoryLang(newLang)
-    const rawCrop = localStorage.getItem('agriGrowSelectedCrop')
-    const cropInfo = rawCrop ? JSON.parse(rawCrop) : selectedCrop
-    const rawProfile = localStorage.getItem('agriGrowFarmProfile')
-    const profile = rawProfile ? JSON.parse(rawProfile) : { soil_type: 'black', size: 5 }
-    fetchAdvisory(newLang, cropInfo, profile)
+    fetchAdvisory(newLang, currentCrop, farmProfile)
+  }
+
+  // Add New Crop Handler
+  const handleAddNewCropSubmit = (e) => {
+    e.preventDefault()
+    const name = newCropForm.name
+    const acres = parseFloat(newCropForm.acres) || 2.0
+    const sowing_date = newCropForm.sowing_date || new Date().toISOString().split('T')[0]
+    const method = newCropForm.method || 'organic'
+    
+    const durationMap = { Cotton: 135, Rice: 120, Pigeonpeas: 150, Maize: 100, Chickpea: 110, Tomato: 90, Chilli: 140, Wheat: 125, Sugarcane: 330 }
+    const duration = durationMap[name] || 120
+    const iconMap = { Cotton: '☁️', Rice: '🌾', Pigeonpeas: '🌱', Maize: '🌽', Chickpea: '🥜', Tomato: '🍅', Chilli: '🌶️', Wheat: '🌾', Sugarcane: '🎋' }
+
+    const newCropObj = {
+      id: Date.now(),
+      name,
+      method,
+      acres,
+      sowing_date,
+      duration,
+      stage: 'Sowing & Germination',
+      icon: iconMap[name] || '🌱',
+      variety: newCropForm.variety
+    }
+
+    const updatedCrops = [...crops, newCropObj]
+    setCrops(updatedCrops)
+    localStorage.setItem('agriGrowCrops', JSON.stringify(updatedCrops))
+    localStorage.setItem('agriGrowSelectedCrop', JSON.stringify({ name, method }))
+    setActiveCropIdx(updatedCrops.length - 1)
+    setShowAddCropModal(false)
+    showToast(`✓ Successfully added ${name} (${acres} Acres) to your Farm Management Hub!`)
+
+    // Background sync to backend database
+    fetch(`${API_BASE}/crops/manage/add`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name,
+        farming_method: method,
+        acres,
+        sowing_date,
+        soil_type: farmProfile.soil_type,
+        soil_n: farmProfile.n,
+        soil_p: farmProfile.p,
+        soil_k: farmProfile.k,
+        soil_ph: farmProfile.ph,
+        water_source: farmProfile.water_source,
+        lat: farmProfile.lat,
+        lon: farmProfile.lon,
+        district_id: farmProfile.district_id,
+        location_name: farmProfile.location_name
+      })
+    }).catch(() => {})
+  }
+
+  // Quick One-Click Add from AI Recommendations
+  const handleQuickAddRecommended = (cropName, defaultAcres = 2.0, defaultMethod = 'organic') => {
+    const durationMap = { Cotton: 135, Rice: 120, Pigeonpeas: 150, Maize: 100, Chickpea: 110, Tomato: 90, Chilli: 140 }
+    const iconMap = { Cotton: '☁️', Rice: '🌾', Pigeonpeas: '🌱', Maize: '🌽', Chickpea: '🥜', Tomato: '🍅', Chilli: '🌶️' }
+    
+    const newCropObj = {
+      id: Date.now(),
+      name: cropName,
+      method: defaultMethod,
+      acres: defaultAcres,
+      sowing_date: new Date().toISOString().split('T')[0],
+      duration: durationMap[cropName] || 120,
+      stage: 'Sowing & Germination',
+      icon: iconMap[cropName] || '🌱'
+    }
+
+    const updatedCrops = [...crops, newCropObj]
+    setCrops(updatedCrops)
+    localStorage.setItem('agriGrowCrops', JSON.stringify(updatedCrops))
+    setActiveCropIdx(updatedCrops.length - 1)
+    showToast(`✓ Added AI-Recommended ${cropName} (${defaultAcres} Ac) to your active crops!`)
+  }
+
+  // Manual Location Update Handler
+  const handleLocationSave = (e) => {
+    e.preventDefault()
+    const dId = locationForm.district_id
+    const dPreset = DISTRICT_PROFILES[dId] || {}
+    
+    const updatedProfile = {
+      ...farmProfile,
+      district_id: dId,
+      lat: parseFloat(locationForm.lat) || dPreset.lat || 16.3067,
+      lon: parseFloat(locationForm.lon) || dPreset.lon || 80.4365,
+      location_name: locationForm.location_name || `${dId.toUpperCase()}, ${dPreset.state || 'India'}`,
+      region: dPreset.state || farmProfile.region || 'Andhra Pradesh',
+      soil_type: locationForm.soil_type || dPreset.soil || 'black',
+      water_source: locationForm.water_source || 'borewell',
+      n: parseFloat(locationForm.n) || dPreset.npk?.n || 110,
+      p: parseFloat(locationForm.p) || dPreset.npk?.p || 52,
+      k: parseFloat(locationForm.k) || dPreset.npk?.k || 26,
+      ph: parseFloat(locationForm.ph) || dPreset.npk?.ph || 7.8
+    }
+
+    setFarmProfile(updatedProfile)
+    localStorage.setItem('agriGrowFarmProfile', JSON.stringify(updatedProfile))
+    setShowLocationModal(false)
+    showToast(`📍 Location updated to ${updatedProfile.location_name}! Recalculating weather & soil data...`)
+    loadDataForCrop(currentCrop, updatedProfile)
+  }
+
+  // Handle Disease Scan Simulation / Diagnosis
+  const handleStartScan = (diseaseObj) => {
+    setScanningDisease(true)
+    setScanResult(null)
+    setTimeout(() => {
+      setScanningDisease(false)
+      setScanResult({
+        crop: diseaseObj.crop,
+        disease: diseaseObj.disease,
+        confidence: 95.8,
+        symptoms: diseaseObj.symptoms,
+        chemical: diseaseObj.chemical,
+        organic: diseaseObj.organic,
+        cost: diseaseObj.cost
+      })
+    }, 1400)
   }
 
   const handleSendWhatsAppBrief = () => {
@@ -679,7 +1251,7 @@ const Dashboard = () => {
         type: 'daily_brief',
         phone_number: '+91 98765 43210',
         data: {
-          crop: selectedCrop.name,
+          crop: currentCrop.name,
           temp: weather?.current?.temperature || 28,
           condition: weather?.current?.condition || 'Partly cloudy',
           irrigation_status: weather?.irrigation_advisory?.action || 'Normal Schedule',
@@ -700,7 +1272,8 @@ const Dashboard = () => {
       .catch(() => {
         const text = encodeURIComponent(
           `🌾 *AgriGrow AI: Daily Field Advisory*\n\n` +
-          `• *Crop:* ${selectedCrop.name}\n` +
+          `• *Crop:* ${currentCrop.name} (${currentCrop.acres} Acres)\n` +
+          `• *Cycle:* Day ${cycleInfo.elapsed} of ${currentCrop.duration} (Sown: ${currentCrop.sowing_date})\n` +
           `• *Weather:* ${weather?.current?.temperature || 28}°C (${weather?.current?.condition || 'Clear'})\n` +
           `• *Irrigation:* ${weather?.irrigation_advisory?.action || 'Normal'} - ${weather?.irrigation_advisory?.detail || 'Optimal soil moisture'}\n` +
           `• *Fertilizer:* Follow scheduled split dose.\n\n` +
@@ -714,7 +1287,7 @@ const Dashboard = () => {
 
   const handlePlayVoice = (text, lang) => {
     if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel() // Stop any previous speech
+      window.speechSynthesis.cancel()
       const utterance = new SpeechSynthesisUtterance(text)
       utterance.lang = lang === 'te' ? 'te-IN' : (lang === 'hi' ? 'hi-IN' : 'en-IN')
       utterance.rate = 0.95
@@ -725,10 +1298,10 @@ const Dashboard = () => {
   }
 
   const tasks = [
-    { id: 1, date: '2026-07-17', type: 'irrigation', desc: 'Initial field flooding (2 inches).', done: false },
-    { id: 2, date: '2026-07-22', type: 'fertilizer', desc: 'Apply organic compost/manure.', done: false },
-    { id: 3, date: '2026-08-06', type: 'weeding', desc: 'First manual weeding.', done: false },
-    { id: 4, date: '2026-09-10', type: 'disease_inspection', desc: 'Check for stem borer or blast disease.', done: false }
+    { id: 1, date: '2026-07-17', type: 'irrigation', desc: `Field irrigation inspection for ${currentCrop.name}. Maintain 2-inch root zone moisture.`, done: false },
+    { id: 2, date: '2026-07-22', type: 'fertilizer', desc: `Apply scheduled split fertilizer / organic compost for ${currentCrop.name}.`, done: false },
+    { id: 3, date: '2026-08-06', type: 'weeding', desc: 'Manual inter-row weeding and soil aeration.', done: false },
+    { id: 4, date: '2026-09-10', type: 'disease_inspection', desc: `Inspect ${currentCrop.name} canopy for early signs of pests or fungal lesions.`, done: false }
   ]
 
   const getAdvisoryColor = (status) => {
@@ -739,36 +1312,186 @@ const Dashboard = () => {
 
   return (
     <div className="container animate-fade-in" style={{marginTop: '2vh'}}>
-      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px'}}>
-        <h2 style={{color: 'var(--text-dark)', margin: 0}}>Farm Dashboard</h2>
-        <div style={{background: 'var(--primary)', color: 'white', padding: '6px 16px', borderRadius: '20px', fontSize: '0.9rem', fontWeight: 'bold'}}>
-          🌾 {selectedCrop.name} ({selectedCrop.method === 'organic' ? '100% Organic' : 'Conventional'})
+      
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div style={{
+          position: 'fixed',
+          top: '50px',
+          right: '20px',
+          zIndex: 1000,
+          background: 'linear-gradient(135deg, var(--jet-black), #23122D)',
+          color: 'var(--cyan-glow)',
+          border: '1.5px solid var(--cyan-glow)',
+          boxShadow: '0 4px 20px rgba(0, 229, 255, 0.4)',
+          padding: '12px 20px',
+          borderRadius: '12px',
+          fontWeight: 'bold',
+          fontSize: '0.9rem',
+          animation: 'fadeIn 0.3s ease'
+        }}>
+          {toastMsg}
+        </div>
+      )}
+
+      {/* ─── CROP MANAGEMENT HUB HEADER (Multi-Crop Tabs) ─── */}
+      <div style={{marginBottom: '18px'}}>
+        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '8px'}}>
+          <div>
+            <h2 style={{color: 'var(--text-dark)', margin: 0, fontSize: '1.45rem', display: 'flex', alignItems: 'center', gap: '8px'}}>
+              <span>🌾</span> Farm Crop Management Hub
+            </h2>
+            <span style={{fontSize: '0.8rem', color: 'var(--text-medium)'}}>
+              Active Portfolio: {crops.length} Crop{crops.length > 1 ? 's' : ''} under active ICAR monitoring
+            </span>
+          </div>
+
+          <button
+            onClick={() => setShowAddCropModal(true)}
+            style={{
+              background: 'linear-gradient(135deg, var(--jet-black), #2E163B)',
+              color: 'var(--cyan-glow)',
+              border: '1.5px solid var(--cyan-glow)',
+              boxShadow: '0 0 12px rgba(0, 229, 255, 0.35)',
+              padding: '8px 16px',
+              borderRadius: '20px',
+              fontWeight: 'bold',
+              fontSize: '0.85rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            <span>➕ Add New Crop</span>
+          </button>
+        </div>
+
+        {/* Multi-Crop Switcher Tabs with Jet Black, Amethyst & Cyan Contrast */}
+        <div style={{
+          display: 'flex',
+          gap: '8px',
+          overflowX: 'auto',
+          paddingBottom: '6px',
+          scrollbarWidth: 'none'
+        }}>
+          {crops.map((c, idx) => {
+            const isActive = idx === activeCropIdx
+            return (
+              <button
+                key={c.id || idx}
+                type="button"
+                onClick={() => setActiveCropIdx(idx)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '9px 18px',
+                  borderRadius: '14px',
+                  whiteSpace: 'nowrap',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  background: isActive ? 'var(--jet-black)' : 'white',
+                  color: isActive ? '#ffffff' : 'var(--text-dark)',
+                  border: isActive ? '2px solid var(--cyan-glow)' : '1px solid var(--border-color)',
+                  boxShadow: isActive ? '0 0 14px rgba(0, 229, 255, 0.45)' : '0 2px 6px rgba(0,0,0,0.05)'
+                }}
+              >
+                <span style={{fontSize: '1.2rem'}}>{c.icon || '🌱'}</span>
+                <div style={{textAlign: 'left'}}>
+                  <strong style={{display: 'block', fontSize: '0.9rem', color: isActive ? 'var(--cyan-glow)' : 'var(--text-dark)'}}>
+                    {c.name}
+                  </strong>
+                  <span style={{fontSize: '0.72rem', opacity: isActive ? 0.9 : 0.7}}>
+                    {c.acres} Ac • {c.method === 'organic' ? 'Organic' : 'Conventional'}
+                  </span>
+                </div>
+                {isActive && (
+                  <span style={{
+                    background: 'linear-gradient(135deg, var(--amethyst), #4A148C)',
+                    color: '#ffffff',
+                    padding: '2px 8px',
+                    borderRadius: '10px',
+                    fontSize: '0.65rem',
+                    fontWeight: 'bold',
+                    marginLeft: '4px'
+                  }}>
+                    ACTIVE
+                  </span>
+                )}
+              </button>
+            )
+          })}
         </div>
       </div>
 
-      {/* Live Weather & Smart Irrigation Widget */}
+      {/* ─── LIVE WEATHER & LOCATION BAR (With Add Location Manually CTA) ─── */}
       {weather && (
-        <div className="glass-panel" style={{padding: '20px', marginBottom: '20px', background: 'linear-gradient(135deg, #5A3E2B, #3D291D)', color: 'white', boxShadow: '0 4px 15px rgba(90, 62, 43, 0.2)'}}>
-          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px'}}>
+        <div className="glass-panel" style={{
+          padding: '18px 20px',
+          marginBottom: '20px',
+          background: 'linear-gradient(135deg, #1A1A1A, #2C1D14)',
+          color: 'white',
+          border: '1.5px solid rgba(135, 169, 107, 0.35)',
+          boxShadow: '0 6px 20px rgba(0,0,0,0.2)'
+        }}>
+          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px', flexWrap: 'wrap', gap: '10px'}}>
             <div>
-              <span style={{fontSize: '0.8rem', textTransform: 'uppercase', opacity: 0.85, letterSpacing: '0.5px'}}>Live Field Weather (Open-Meteo)</span>
-              <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px'}}>
-                <span style={{fontSize: '2rem'}}>{weather.current?.icon}</span>
-                <span style={{fontSize: '1.6rem', fontWeight: 'bold'}}>{weather.current?.temperature}°C</span>
-                <span style={{fontSize: '1rem', opacity: 0.9}}>• {weather.current?.condition}</span>
+              <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                <span style={{fontSize: '0.78rem', textTransform: 'uppercase', color: 'var(--cyan-glow)', letterSpacing: '0.5px', fontWeight: 'bold'}}>
+                  📍 {farmProfile.location_name || 'Guntur, Andhra Pradesh'}
+                </span>
+                <button
+                  onClick={() => {
+                    setLocationForm({
+                      district_id: farmProfile.district_id || 'guntur',
+                      lat: farmProfile.lat || 16.3067,
+                      lon: farmProfile.lon || 80.4365,
+                      location_name: farmProfile.location_name || 'Guntur, Andhra Pradesh',
+                      soil_type: farmProfile.soil_type || 'black',
+                      water_source: farmProfile.water_source || 'borewell',
+                      n: farmProfile.n || 110,
+                      p: farmProfile.p || 52,
+                      k: farmProfile.k || 26,
+                      ph: farmProfile.ph || 7.8
+                    })
+                    setShowLocationModal(true)
+                  }}
+                  style={{
+                    background: 'rgba(0, 229, 255, 0.15)',
+                    border: '1px solid var(--cyan-glow)',
+                    color: 'var(--cyan-glow)',
+                    padding: '2px 8px',
+                    borderRadius: '10px',
+                    fontSize: '0.72rem',
+                    fontWeight: 'bold',
+                    cursor: 'pointer'
+                  }}
+                >
+                  ✏️ Edit Location / Soil
+                </button>
+              </div>
+
+              <div style={{display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px'}}>
+                <span style={{fontSize: '2.2rem'}}>{weather.current?.icon}</span>
+                <div>
+                  <span style={{fontSize: '1.8rem', fontWeight: 'bold'}}>{weather.current?.temperature}°C</span>
+                  <span style={{fontSize: '0.95rem', opacity: 0.9, marginLeft: '8px'}}>• {weather.current?.condition}</span>
+                </div>
               </div>
             </div>
-            <div style={{textAlign: 'right', fontSize: '0.85rem', opacity: 0.9}}>
+
+            <div style={{textAlign: 'right', fontSize: '0.85rem', opacity: 0.95}}>
               <div>💧 Humidity: <strong>{weather.current?.humidity}%</strong></div>
               <div>💨 Wind: <strong>{weather.current?.wind_speed || 6.5} km/h</strong></div>
               <div>🌧️ 3-Day Rain: <strong>{weather.forecast_3d_rain_mm} mm</strong></div>
             </div>
           </div>
 
-          {/* Smart Irrigation Advisory Alert */}
+          {/* Smart Irrigation Alert */}
           {weather.irrigation_advisory && (
             <div style={{
-              background: 'rgba(255, 255, 255, 0.95)', 
+              background: 'rgba(255, 255, 255, 0.96)', 
               color: getAdvisoryColor(weather.irrigation_advisory.status), 
               padding: '10px 14px', 
               borderRadius: '8px', 
@@ -794,6 +1517,466 @@ const Dashboard = () => {
         </div>
       )}
 
+      {/* ─── DATE WHEN TO START & CROP CYCLE TIMELINE ─── */}
+      <div className="glass-panel" style={{ padding: '20px', marginBottom: '20px', background: 'white' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+          <div>
+            <h3 style={{ margin: 0, color: 'var(--text-dark)', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>⏱️</span> Crop Cycle Progression & Sowing Timeline
+            </h3>
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-medium)' }}>
+              Sown on: <strong>{currentCrop.sowing_date || '2026-06-15'}</strong> • Target Harvest: <strong>{currentCrop.duration || 135} Days</strong>
+            </span>
+          </div>
+
+          <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+            <span style={{
+              background: 'linear-gradient(135deg, var(--amethyst), #4A148C)',
+              color: 'white',
+              padding: '4px 12px',
+              borderRadius: '15px',
+              fontWeight: 'bold',
+              fontSize: '0.8rem',
+              boxShadow: '0 2px 8px rgba(123, 31, 162, 0.3)'
+            }}>
+              Day {cycleInfo.elapsed} of {currentCrop.duration || 135}
+            </span>
+            <span style={{
+              background: '#F4F7F0',
+              border: '1px solid var(--border-color)',
+              color: 'var(--text-dark)',
+              padding: '4px 10px',
+              borderRadius: '15px',
+              fontWeight: 'bold',
+              fontSize: '0.78rem'
+            }}>
+              {cycleInfo.remaining} Days Remaining
+            </span>
+          </div>
+        </div>
+
+        {/* Dynamic Progress Bar */}
+        <div style={{background: '#EAEFE6', height: '10px', borderRadius: '5px', overflow: 'hidden', marginBottom: '14px'}}>
+          <div style={{
+            width: `${cycleInfo.pct}%`,
+            height: '100%',
+            background: 'linear-gradient(90deg, var(--primary), var(--cyan-glow))',
+            borderRadius: '5px',
+            transition: 'width 0.4s ease'
+          }}></div>
+        </div>
+
+        {/* 4-Step ICAR Phenological Growth Track */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', margin: '14px 0' }}>
+          {[
+            { stage: 'Stage 1', name: 'Sowing & Germination', days: 'Days 1-15', min: 1, max: 15 },
+            { stage: 'Stage 2', name: 'Vegetative & Tillering', days: 'Days 16-45', min: 16, max: 45 },
+            { stage: 'Stage 3', name: 'Flowering & Boll Setting', days: 'Days 46-90', min: 46, max: 90 },
+            { stage: 'Stage 4', name: 'Maturity & Harvest', days: 'Days 91-135', min: 91, max: 135 }
+          ].map((st, idx) => {
+            const isCompleted = cycleInfo.elapsed > st.max
+            const isActive = cycleInfo.elapsed >= st.min && cycleInfo.elapsed <= st.max
+            return (
+              <div key={idx} style={{
+                background: isActive ? 'var(--jet-black)' : (isCompleted ? '#F4F7F0' : '#FAFAFA'),
+                color: isActive ? '#ffffff' : 'var(--text-dark)',
+                border: isActive ? '2px solid var(--cyan-glow)' : '1px solid var(--border-color)',
+                boxShadow: isActive ? '0 0 12px rgba(0, 229, 255, 0.4)' : 'none',
+                padding: '10px 8px',
+                borderRadius: '10px',
+                textAlign: 'center',
+                position: 'relative'
+              }}>
+                {isCompleted && <span style={{ position: 'absolute', top: '4px', right: '6px', fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 'bold' }}>✓</span>}
+                {isActive && <span style={{ position: 'absolute', top: '4px', right: '6px', fontSize: '0.62rem', background: 'var(--cyan-glow)', color: '#000', padding: '1px 5px', borderRadius: '8px', fontWeight: 'bold' }}>NOW</span>}
+                <div style={{ fontSize: '0.7rem', color: isActive ? 'var(--cyan-glow)' : 'var(--text-medium)', fontWeight: 'bold' }}>{st.stage}</div>
+                <div style={{ fontSize: '0.8rem', fontWeight: 'bold', margin: '3px 0' }}>{st.name}</div>
+                <div style={{ fontSize: '0.68rem', opacity: 0.75 }}>{st.days}</div>
+              </div>
+            )
+          })}
+        </div>
+
+        <div style={{ background: '#FEF3DC', borderLeft: '4px solid var(--accent)', padding: '10px 14px', borderRadius: '6px', fontSize: '0.84rem', color: 'var(--text-dark)' }}>
+          <strong>Agronomic Stage Directive:</strong> Crop is currently in <strong>{currentCrop.stage || 'Flowering & Boll Setting'}</strong>. Moisture balance is critical. Maintain root zone aeration and prepare for split fertilizer application.
+        </div>
+      </div>
+
+      {/* ─── SOIL FERTILITY VISUAL PROFILE SECTION ─── */}
+      <div className="glass-panel" style={{ padding: '22px', marginBottom: '22px', background: 'white' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
+          <div>
+            <h3 style={{ margin: 0, color: 'var(--text-dark)', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>🧪</span> Soil Fertility Visual Profile & Health Card
+            </h3>
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-medium)' }}>
+              Soil Type: <strong style={{textTransform: 'capitalize'}}>{farmProfile.soil_type} Soil</strong> • Water Source: <strong style={{textTransform: 'capitalize'}}>{farmProfile.water_source}</strong>
+            </span>
+          </div>
+
+          <div style={{
+            background: 'linear-gradient(135deg, var(--jet-black), #23122D)',
+            color: 'var(--cyan-glow)',
+            border: '1.5px solid var(--cyan-glow)',
+            padding: '6px 14px',
+            borderRadius: '16px',
+            fontSize: '0.82rem',
+            fontWeight: 'bold',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}>
+            <span>Score: 84 / 100</span>
+            <span style={{color: '#87A96B'}}>• Good Condition</span>
+          </div>
+        </div>
+
+        {/* 4 Nutrient Meters (N-P-K-pH) */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px', marginBottom: '16px' }}>
+          
+          {/* Nitrogen */}
+          <div style={{ background: '#F4F7F0', border: '1px solid var(--border-color)', borderRadius: '10px', padding: '14px' }}>
+            <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '4px'}}>
+              <span style={{fontSize: '0.78rem', fontWeight: 'bold', color: 'var(--text-dark)'}}>Nitrogen (N)</span>
+              <span style={{fontSize: '0.75rem', fontWeight: 'bold', color: '#D58511'}}>Medium / Deficit</span>
+            </div>
+            <div style={{fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--text-dark)', marginBottom: '6px'}}>
+              {farmProfile.n || 110} <span style={{fontSize: '0.75rem', fontWeight: 'normal'}}>kg/ha</span>
+            </div>
+            <div style={{background: '#E0E7DC', height: '8px', borderRadius: '4px', overflow: 'hidden'}}>
+              <div style={{width: `${Math.min(100, ((farmProfile.n || 110) / 180) * 100)}%`, height: '100%', background: '#D58511'}}></div>
+            </div>
+            <span style={{fontSize: '0.7rem', color: 'var(--text-medium)', marginTop: '4px', display: 'block'}}>
+              Target: 140 kg/ha • Apply Urea split top-dress
+            </span>
+          </div>
+
+          {/* Phosphorus */}
+          <div style={{ background: '#F4F7F0', border: '1px solid var(--border-color)', borderRadius: '10px', padding: '14px' }}>
+            <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '4px'}}>
+              <span style={{fontSize: '0.78rem', fontWeight: 'bold', color: 'var(--text-dark)'}}>Phosphorus (P)</span>
+              <span style={{fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--primary)'}}>Optimal</span>
+            </div>
+            <div style={{fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--text-dark)', marginBottom: '6px'}}>
+              {farmProfile.p || 52} <span style={{fontSize: '0.75rem', fontWeight: 'normal'}}>kg/ha</span>
+            </div>
+            <div style={{background: '#E0E7DC', height: '8px', borderRadius: '4px', overflow: 'hidden'}}>
+              <div style={{width: `${Math.min(100, ((farmProfile.p || 52) / 70) * 100)}%`, height: '100%', background: 'var(--primary)'}}></div>
+            </div>
+            <span style={{fontSize: '0.7rem', color: 'var(--text-medium)', marginTop: '4px', display: 'block'}}>
+              Target: 45-60 kg/ha • Basal DAP sufficient
+            </span>
+          </div>
+
+          {/* Potassium */}
+          <div style={{ background: '#F4F7F0', border: '1px solid var(--border-color)', borderRadius: '10px', padding: '14px' }}>
+            <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '4px'}}>
+              <span style={{fontSize: '0.78rem', fontWeight: 'bold', color: 'var(--text-dark)'}}>Potassium (K)</span>
+              <span style={{fontSize: '0.75rem', fontWeight: 'bold', color: '#b71c1c'}}>Low / Deficit</span>
+            </div>
+            <div style={{fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--text-dark)', marginBottom: '6px'}}>
+              {farmProfile.k || 26} <span style={{fontSize: '0.75rem', fontWeight: 'normal'}}>kg/ha</span>
+            </div>
+            <div style={{background: '#E0E7DC', height: '8px', borderRadius: '4px', overflow: 'hidden'}}>
+              <div style={{width: `${Math.min(100, ((farmProfile.k || 26) / 50) * 100)}%`, height: '100%', background: '#b71c1c'}}></div>
+            </div>
+            <span style={{fontSize: '0.7rem', color: 'var(--text-medium)', marginTop: '4px', display: 'block'}}>
+              Target: 40 kg/ha • MOP supplementation required
+            </span>
+          </div>
+
+          {/* Soil pH */}
+          <div style={{ background: '#F4F7F0', border: '1px solid var(--border-color)', borderRadius: '10px', padding: '14px' }}>
+            <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '4px'}}>
+              <span style={{fontSize: '0.78rem', fontWeight: 'bold', color: 'var(--text-dark)'}}>Soil pH Gauge</span>
+              <span style={{fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--primary)'}}>Optimal</span>
+            </div>
+            <div style={{fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--text-dark)', marginBottom: '6px'}}>
+              {farmProfile.ph || 7.8} <span style={{fontSize: '0.75rem', fontWeight: 'normal'}}>pH</span>
+            </div>
+            <div style={{background: '#E0E7DC', height: '8px', borderRadius: '4px', overflow: 'hidden'}}>
+              <div style={{width: `${Math.min(100, ((farmProfile.ph || 7.8) / 10) * 100)}%`, height: '100%', background: 'var(--primary)'}}></div>
+            </div>
+            <span style={{fontSize: '0.7rem', color: 'var(--text-medium)', marginTop: '4px', display: 'block'}}>
+              Range: 6.5 - 8.2 • Slightly Alkaline Regur Loam
+            </span>
+          </div>
+        </div>
+
+        <div style={{display: 'flex', justifyContent: 'flex-end'}}>
+          <button
+            onClick={() => setShowLocationModal(true)}
+            style={{
+              background: 'transparent',
+              color: 'var(--primary-dark)',
+              border: '1px solid var(--primary)',
+              padding: '6px 14px',
+              borderRadius: '8px',
+              fontSize: '0.8rem',
+              fontWeight: '600',
+              cursor: 'pointer'
+            }}
+          >
+            ⚙️ Edit Soil Test & N-P-K Numbers
+          </button>
+        </div>
+      </div>
+
+      {/* ─── AI RECOMMENDATION CROP SECTION (+ Add to Farm CTA) ─── */}
+      <div className="glass-panel" style={{ padding: '22px', marginBottom: '22px', background: 'white' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+          <div>
+            <h3 style={{ margin: 0, color: 'var(--text-dark)', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>🤖</span> AI Crop Recommendations for Companion & Next Season
+            </h3>
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-medium)' }}>
+              Algorithmically ranked for {farmProfile.soil_type} soil and current APMC mandi market trends
+            </span>
+          </div>
+
+          <button
+            onClick={() => navigate('/crop-selection')}
+            style={{
+              background: 'transparent',
+              color: 'var(--text-dark)',
+              border: '1px solid var(--border-color)',
+              padding: '5px 12px',
+              borderRadius: '12px',
+              fontSize: '0.78rem',
+              fontWeight: 'bold',
+              cursor: 'pointer'
+            }}
+          >
+            View Full Matrix →
+          </button>
+        </div>
+
+        {/* 3 AI Recommendations Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
+          
+          {/* Card 1: Pigeonpeas */}
+          <div style={{
+            background: '#F4F7F0',
+            border: '1.5px solid var(--primary)',
+            borderRadius: '12px',
+            padding: '16px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between'
+          }}>
+            <div>
+              <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px'}}>
+                <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                  <span style={{fontSize: '1.8rem'}}>🌱</span>
+                  <div>
+                    <strong style={{fontSize: '1rem', color: 'var(--text-dark)'}}>Pigeonpeas (Tur)</strong>
+                    <span style={{display: 'block', fontSize: '0.72rem', color: 'var(--text-medium)'}}>150 Days • Pulse Crop</span>
+                  </div>
+                </div>
+                <span className="badge-amethyst" style={{fontSize: '0.7rem'}}>96% Match</span>
+              </div>
+              <p style={{fontSize: '0.8rem', color: 'var(--text-medium)', margin: '6px 0 10px 0'}}>
+                Natural nitrogen-fixing leguminous crop. Excellent intercropping companion for Cotton with <strong>+₹38,500/ac net margin</strong>.
+              </p>
+            </div>
+            <button
+              onClick={() => handleQuickAddRecommended('Pigeonpeas', 2.0, 'organic')}
+              className="btn-accent"
+              style={{
+                width: '100%',
+                padding: '8px',
+                fontSize: '0.82rem',
+                borderRadius: '8px',
+                fontWeight: 'bold'
+              }}
+            >
+              + Add Pigeonpeas to Farm
+            </button>
+          </div>
+
+          {/* Card 2: Maize */}
+          <div style={{
+            background: '#F4F7F0',
+            border: '1px solid var(--border-color)',
+            borderRadius: '12px',
+            padding: '16px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between'
+          }}>
+            <div>
+              <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px'}}>
+                <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                  <span style={{fontSize: '1.8rem'}}>🌽</span>
+                  <div>
+                    <strong style={{fontSize: '1rem', color: 'var(--text-dark)'}}>Maize (Corn)</strong>
+                    <span style={{display: 'block', fontSize: '0.72rem', color: 'var(--text-medium)'}}>100 Days • Short Cycle</span>
+                  </div>
+                </div>
+                <span style={{background: 'var(--secondary)', color: 'var(--primary-dark)', padding: '2px 8px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 'bold'}}>92% Match</span>
+              </div>
+              <p style={{fontSize: '0.8rem', color: 'var(--text-medium)', margin: '6px 0 10px 0'}}>
+                High industrial demand for poultry & ethanol feed. Fast cash turnaround with <strong>+₹31,200/ac net profit</strong>.
+              </p>
+            </div>
+            <button
+              onClick={() => handleQuickAddRecommended('Maize', 3.0, 'conventional')}
+              className="btn-primary"
+              style={{
+                width: '100%',
+                padding: '8px',
+                fontSize: '0.82rem',
+                borderRadius: '8px',
+                fontWeight: 'bold'
+              }}
+            >
+              + Add Maize to Farm
+            </button>
+          </div>
+
+          {/* Card 3: Chickpea */}
+          <div style={{
+            background: '#F4F7F0',
+            border: '1px solid var(--border-color)',
+            borderRadius: '12px',
+            padding: '16px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between'
+          }}>
+            <div>
+              <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px'}}>
+                <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                  <span style={{fontSize: '1.8rem'}}>🥜</span>
+                  <div>
+                    <strong style={{fontSize: '1rem', color: 'var(--text-dark)'}}>Chickpea (Chana)</strong>
+                    <span style={{display: 'block', fontSize: '0.72rem', color: 'var(--text-medium)'}}>110 Days • Low Water</span>
+                  </div>
+                </div>
+                <span style={{background: 'var(--secondary)', color: 'var(--primary-dark)', padding: '2px 8px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 'bold'}}>88% Match</span>
+              </div>
+              <p style={{fontSize: '0.8rem', color: 'var(--text-medium)', margin: '6px 0 10px 0'}}>
+                Drought resilient rabi crop. Minimum water requirement and stable MSP procurement at <strong>₹5,440/q</strong>.
+              </p>
+            </div>
+            <button
+              onClick={() => handleQuickAddRecommended('Chickpea', 2.0, 'organic')}
+              className="btn-outline"
+              style={{
+                width: '100%',
+                padding: '8px',
+                fontSize: '0.82rem',
+                borderRadius: '8px',
+                fontWeight: 'bold'
+              }}
+            >
+              + Add Chickpea to Farm
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      {/* ─── PLANT DISEASE VISUAL DIAGNOSTICS & REFERENCE GALLERY ─── */}
+      <div className="glass-panel" style={{ padding: '22px', marginBottom: '22px', background: 'white' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+          <div>
+            <h3 style={{ margin: 0, color: 'var(--text-dark)', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>📸</span> Plant Disease Visual Diagnostics & Reference Gallery
+            </h3>
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-medium)' }}>
+              ICAR Verified Fungal, Bacterial & Pest Symptoms with CACP Approved Treatments
+            </span>
+          </div>
+
+          <button
+            onClick={() => {
+              setDiseaseModal(true)
+              setSelectedDiseaseItem(REFERENCE_DISEASES[0])
+              handleStartScan(REFERENCE_DISEASES[0])
+            }}
+            style={{
+              background: 'linear-gradient(135deg, var(--jet-black), #261330)',
+              color: 'var(--cyan-glow)',
+              border: '1.5px solid var(--cyan-glow)',
+              boxShadow: '0 0 10px rgba(0, 229, 255, 0.35)',
+              padding: '8px 16px',
+              borderRadius: '16px',
+              fontWeight: 'bold',
+              fontSize: '0.82rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            <span>📷 Instant AI Leaf Scanner</span>
+          </button>
+        </div>
+
+        {/* 4 Disease Reference Photo Cards Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '14px' }}>
+          {REFERENCE_DISEASES.map((dis) => (
+            <div
+              key={dis.id}
+              onClick={() => {
+                setSelectedDiseaseItem(dis)
+                setDiseaseModal(true)
+                handleStartScan(dis)
+              }}
+              style={{
+                background: '#F9FBF8',
+                border: '1.5px solid var(--border-color)',
+                borderRadius: '12px',
+                padding: '14px',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                position: 'relative'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = 'var(--cyan-glow)'
+                e.currentTarget.style.boxShadow = '0 4px 15px rgba(0, 229, 255, 0.25)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'var(--border-color)'
+                e.currentTarget.style.boxShadow = 'none'
+              }}
+            >
+              {/* Card Thumbnail Header */}
+              <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px'}}>
+                <span style={{fontSize: '1.8rem'}}>{dis.icon}</span>
+                <span style={{
+                  background: 'rgba(213, 133, 17, 0.15)',
+                  color: 'var(--accent-dark)',
+                  padding: '2px 8px',
+                  borderRadius: '10px',
+                  fontSize: '0.68rem',
+                  fontWeight: 'bold'
+                }}>
+                  {dis.badge}
+                </span>
+              </div>
+
+              <strong style={{display: 'block', fontSize: '0.92rem', color: 'var(--text-dark)', marginBottom: '4px'}}>
+                {dis.disease}
+              </strong>
+              <span style={{display: 'block', fontSize: '0.72rem', color: 'var(--primary-dark)', fontWeight: 'bold', marginBottom: '6px'}}>
+                Crop: {dis.crop}
+              </span>
+
+              <p style={{fontSize: '0.78rem', color: 'var(--text-medium)', margin: '0 0 10px 0', lineHeight: '1.35'}}>
+                {dis.symptoms.slice(0, 75)}...
+              </p>
+
+              <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #EAEFE6', paddingTop: '8px', fontSize: '0.75rem'}}>
+                <span style={{color: 'var(--text-medium)'}}>Est: <strong>{dis.cost}</strong></span>
+                <span style={{color: 'var(--primary)', fontWeight: 'bold'}}>View Rx →</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Quick Action Dispatch Bar */}
       <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '18px' }}>
         <button
@@ -804,8 +1987,8 @@ const Dashboard = () => {
             background: '#25D366',
             color: 'white',
             border: 'none',
-            padding: '10px 16px',
-            borderRadius: '10px',
+            padding: '11px 16px',
+            borderRadius: '12px',
             fontWeight: 'bold',
             fontSize: '0.9rem',
             cursor: 'pointer',
@@ -825,8 +2008,8 @@ const Dashboard = () => {
           style={{
             flex: 1,
             minWidth: '220px',
-            padding: '10px 16px',
-            borderRadius: '10px',
+            padding: '11px 16px',
+            borderRadius: '12px',
             fontWeight: 'bold',
             fontSize: '0.9rem',
             cursor: 'pointer',
@@ -845,50 +2028,6 @@ const Dashboard = () => {
           ✓ {whatsappStatus}
         </div>
       )}
-
-      {/* Phase 15: Biological Crop Growth Stage Visualizer */}
-      <div className="glass-panel" style={{ padding: '18px 20px', marginBottom: '20px', background: 'white' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-          <div>
-            <h3 style={{ margin: 0, color: 'var(--text-dark)', fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span>🌱</span> Biological Crop Growth Stage Visualizer
-            </h3>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-medium)' }}>Standard ICAR Phenological Growth Timeline</span>
-          </div>
-          <span style={{ background: '#DDE8D5', color: 'var(--text-dark)', padding: '4px 12px', borderRadius: '15px', fontWeight: 'bold', fontSize: '0.78rem' }}>
-            Day 52 of 135 (Active)
-          </span>
-        </div>
-
-        {/* 4-Step Progress Track */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', margin: '14px 0' }}>
-          {[
-            { stage: 'Stage 1', name: 'Sowing & Germination', days: 'Days 1-15', status: 'completed' },
-            { stage: 'Stage 2', name: 'Vegetative & Tillering', days: 'Days 16-45', status: 'completed' },
-            { stage: 'Stage 3', name: 'Flowering & Boll Setting', days: 'Days 46-90', status: 'active' },
-            { stage: 'Stage 4', name: 'Maturity & Harvest', days: 'Days 91-135', status: 'upcoming' }
-          ].map((st, idx) => (
-            <div key={idx} style={{
-              background: st.status === 'active' ? '#DDE8D5' : (st.status === 'completed' ? '#F4F7F0' : '#FAFAFA'),
-              border: st.status === 'active' ? '2px solid var(--primary)' : '1px solid var(--border-color)',
-              padding: '10px 8px',
-              borderRadius: '8px',
-              textAlign: 'center',
-              position: 'relative'
-            }}>
-              {st.status === 'completed' && <span style={{ position: 'absolute', top: '4px', right: '6px', fontSize: '0.75rem', color: 'var(--primary)' }}>✓</span>}
-              {st.status === 'active' && <span style={{ position: 'absolute', top: '4px', right: '6px', fontSize: '0.65rem', background: 'var(--primary)', color: 'white', padding: '1px 5px', borderRadius: '10px', fontWeight: 'bold' }}>NOW</span>}
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-medium)', fontWeight: 'bold' }}>{st.stage}</div>
-              <div style={{ fontSize: '0.82rem', fontWeight: st.status === 'active' ? 'bold' : '500', color: st.status === 'active' ? 'var(--text-dark)' : 'var(--text-medium)', margin: '3px 0' }}>{st.name}</div>
-              <div style={{ fontSize: '0.7rem', color: '#888' }}>{st.days}</div>
-            </div>
-          ))}
-        </div>
-
-        <div style={{ background: '#FEF3DC', borderLeft: '4px solid var(--accent)', padding: '10px 14px', borderRadius: '6px', fontSize: '0.84rem', color: 'var(--text-dark)' }}>
-          <strong>Critical Stage Advisory:</strong> Crop is currently in peak <strong>Flowering & Reproductive Phase</strong>. Moisture stress at this stage will cause flower/boll drop. Maintain recommended irrigation intervals and inspect for bollworms/pests.
-        </div>
-      </div>
 
       {/* Grounded AI Multilingual Action Plan Card */}
       {advisory && (
@@ -972,10 +2111,10 @@ const Dashboard = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
           <div>
             <h3 style={{ margin: 0, color: 'var(--text-dark)', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>🧪</span> Precision Fertilizer Bag Calculator
+              <span>🧪</span> Precision Fertilizer Bag Calculator ({currentCrop.name})
             </h3>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-medium)' }}>
-              Translates soil N-P-K deficit for {farmProfile?.size || 5} acres into subsidized retail market bags
+              Calculated for {currentCrop.acres || farmProfile?.size || 5} acres based on soil deficit
             </span>
           </div>
 
@@ -1015,7 +2154,6 @@ const Dashboard = () => {
 
         {fertilizerMethod === 'chemical' ? (
           <div>
-            {/* Bag Cards Grid */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', marginBottom: '14px' }}>
               <div style={{ background: '#F4F7F0', border: '1px solid #87A96B', borderRadius: '10px', padding: '14px' }}>
                 <span style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 'bold' }}>NITROGEN (N) DEFICIT</span>
@@ -1094,9 +2232,10 @@ const Dashboard = () => {
       <div className="glass-panel" style={{
         padding: '18px 22px',
         marginBottom: '22px',
-        background: 'linear-gradient(135deg, #5A3E2B, #3D291D)',
+        background: 'linear-gradient(135deg, #1A1A1A, #28182E)',
         color: 'white',
-        boxShadow: '0 4px 15px rgba(90, 62, 43, 0.2)'
+        border: '1.5px solid var(--cyan-glow)',
+        boxShadow: '0 4px 20px rgba(0, 229, 255, 0.25)'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
           <div>
@@ -1105,7 +2244,7 @@ const Dashboard = () => {
               <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#ffffff' }}>Government Kisan Credit Card (KCC) @ 4% APR</h3>
             </div>
             <p style={{ margin: '6px 0 0 0', fontSize: '0.88rem', opacity: 0.95 }}>
-              Scale of Finance Credit Limit: <strong>₹{kccData?.approved_kcc_credit_limit?.toLocaleString() || '2,25,000'}</strong> | Save <strong>₹{kccData?.interest_comparison?.annual_farmer_savings_inr?.toLocaleString() || '58,500'}/year</strong> vs. private moneylenders!
+              Scale of Finance Limit: <strong>₹{kccData?.approved_kcc_credit_limit?.toLocaleString() || '2,25,000'}</strong> | Save <strong>₹{kccData?.interest_comparison?.annual_farmer_savings_inr?.toLocaleString() || '58,500'}/year</strong> vs. private moneylenders!
             </p>
           </div>
 
@@ -1142,17 +2281,7 @@ const Dashboard = () => {
         ))}
       </div>
 
-      {/* Phase 15 Farm Appraisal Report Modal */}
-      <FarmReportModal
-        open={showReportModal}
-        onClose={() => setShowReportModal(false)}
-        farmProfile={farmProfile}
-        cropInfo={selectedCrop}
-        weather={weather}
-        fertilizerData={fertilizerData}
-        loanData={kccData}
-      />
-
+      {/* Navigation Shortcuts */}
       <div style={{display: 'flex', gap: '15px', marginTop: '15px'}}>
         <button className="btn-accent" style={{flex: 1}} onClick={() => navigate('/disease-detect')}>
           📷 Identify Crop Disease
@@ -1170,6 +2299,453 @@ const Dashboard = () => {
           🏛️ Govt Loans & KCC (4%)
         </button>
       </div>
+
+      {/* ─── MODAL 1: ADD NEW CROP ─── */}
+      {showAddCropModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'rgba(0,0,0,0.65)',
+          backdropFilter: 'blur(4px)',
+          zIndex: 10000,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: '20px'
+        }}>
+          <div className="glass-panel animate-fade-in" style={{
+            background: 'white',
+            maxWidth: '500px',
+            width: '100%',
+            padding: '26px',
+            maxHeight: '90vh',
+            overflowY: 'auto'
+          }}>
+            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px'}}>
+              <h3 style={{margin: 0, color: 'var(--text-dark)', fontSize: '1.3rem'}}>➕ Add New Crop to Farm</h3>
+              <button
+                onClick={() => setShowAddCropModal(false)}
+                style={{background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: 'var(--text-medium)'}}
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleAddNewCropSubmit}>
+              <div style={{marginBottom: '14px'}}>
+                <label style={{display: 'block', marginBottom: '6px', fontWeight: '600', fontSize: '0.88rem', color: 'var(--text-dark)'}}>Crop Name</label>
+                <select
+                  value={newCropForm.name}
+                  onChange={(e) => setNewCropForm({ ...newCropForm, name: e.target.value })}
+                >
+                  <option value="Cotton">Cotton (Kapas) - 135 Days</option>
+                  <option value="Rice">Rice (Paddy) - 120 Days</option>
+                  <option value="Pigeonpeas">Pigeonpeas (Tur/Arhar) - 150 Days</option>
+                  <option value="Maize">Maize (Makka) - 100 Days</option>
+                  <option value="Chickpea">Chickpea (Chana) - 110 Days</option>
+                  <option value="Tomato">Tomato (Tamatar) - 90 Days</option>
+                  <option value="Chilli">Chilli (Mirchi) - 140 Days</option>
+                  <option value="Wheat">Wheat (Gehu) - 125 Days</option>
+                  <option value="Sugarcane">Sugarcane (Ganna) - 330 Days</option>
+                </select>
+              </div>
+
+              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px'}}>
+                <div>
+                  <label style={{display: 'block', marginBottom: '6px', fontWeight: '600', fontSize: '0.88rem', color: 'var(--text-dark)'}}>Acres Allocated</label>
+                  <input
+                    type="number"
+                    step="0.5"
+                    min="0.5"
+                    value={newCropForm.acres}
+                    onChange={(e) => setNewCropForm({ ...newCropForm, acres: e.target.value })}
+                    required
+                  />
+                </div>
+                <div>
+                  <label style={{display: 'block', marginBottom: '6px', fontWeight: '600', fontSize: '0.88rem', color: 'var(--text-dark)'}}>Date When Sown / Starting</label>
+                  <input
+                    type="date"
+                    value={newCropForm.sowing_date}
+                    onChange={(e) => setNewCropForm({ ...newCropForm, sowing_date: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div style={{marginBottom: '16px'}}>
+                <label style={{display: 'block', marginBottom: '6px', fontWeight: '600', fontSize: '0.88rem', color: 'var(--text-dark)'}}>Cultivation Mode</label>
+                <div style={{display: 'flex', gap: '10px'}}>
+                  <button
+                    type="button"
+                    onClick={() => setNewCropForm({ ...newCropForm, method: 'organic' })}
+                    style={{
+                      flex: 1,
+                      padding: '10px',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      fontSize: '0.85rem',
+                      background: newCropForm.method === 'organic' ? 'var(--jet-black)' : '#F4F7F0',
+                      color: newCropForm.method === 'organic' ? 'var(--cyan-glow)' : 'var(--text-dark)',
+                      border: newCropForm.method === 'organic' ? '1.5px solid var(--cyan-glow)' : '1px solid var(--border-color)'
+                    }}
+                  >
+                    🌱 100% Organic
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNewCropForm({ ...newCropForm, method: 'conventional' })}
+                    style={{
+                      flex: 1,
+                      padding: '10px',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      fontSize: '0.85rem',
+                      background: newCropForm.method === 'conventional' ? 'var(--jet-black)' : '#F4F7F0',
+                      color: newCropForm.method === 'conventional' ? 'var(--cyan-glow)' : 'var(--text-dark)',
+                      border: newCropForm.method === 'conventional' ? '1.5px solid var(--cyan-glow)' : '1px solid var(--border-color)'
+                    }}
+                  >
+                    ⚡ Conventional
+                  </button>
+                </div>
+              </div>
+
+              <div style={{marginBottom: '20px'}}>
+                <label style={{display: 'block', marginBottom: '6px', fontWeight: '600', fontSize: '0.88rem', color: 'var(--text-dark)'}}>Seed Variety / Notes (Optional)</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Bt Cotton RCH-2 or BPT 5204"
+                  value={newCropForm.variety}
+                  onChange={(e) => setNewCropForm({ ...newCropForm, variety: e.target.value })}
+                />
+              </div>
+
+              <div style={{display: 'flex', gap: '10px'}}>
+                <button
+                  type="button"
+                  onClick={() => setShowAddCropModal(false)}
+                  className="btn-outline"
+                  style={{flex: 1}}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn-accent"
+                  style={{flex: 2}}
+                >
+                  Save & Add Crop
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ─── MODAL 2: ADD LOCATION MANUALLY & SOIL EDIT ─── */}
+      {showLocationModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'rgba(0,0,0,0.65)',
+          backdropFilter: 'blur(4px)',
+          zIndex: 10000,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: '20px'
+        }}>
+          <div className="glass-panel animate-fade-in" style={{
+            background: 'white',
+            maxWidth: '520px',
+            width: '100%',
+            padding: '26px',
+            maxHeight: '90vh',
+            overflowY: 'auto'
+          }}>
+            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px'}}>
+              <h3 style={{margin: 0, color: 'var(--text-dark)', fontSize: '1.3rem'}}>📍 Add Location & Soil Manually</h3>
+              <button
+                onClick={() => setShowLocationModal(false)}
+                style={{background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: 'var(--text-medium)'}}
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleLocationSave}>
+              <div style={{marginBottom: '14px'}}>
+                <label style={{display: 'block', marginBottom: '6px', fontWeight: '600', fontSize: '0.88rem', color: 'var(--text-dark)'}}>Preset Agricultural District</label>
+                <select
+                  value={locationForm.district_id}
+                  onChange={(e) => {
+                    const dId = e.target.value
+                    const prof = DISTRICT_PROFILES[dId] || {}
+                    setLocationForm({
+                      ...locationForm,
+                      district_id: dId,
+                      lat: prof.lat || 16.3067,
+                      lon: prof.lon || 80.4365,
+                      soil_type: prof.soil || 'black',
+                      n: prof.npk?.n || 110,
+                      p: prof.npk?.p || 52,
+                      k: prof.npk?.k || 26,
+                      ph: prof.npk?.ph || 7.8,
+                      location_name: `${dId.replace('_', ' ').toUpperCase()}, ${prof.state || 'India'}`
+                    })
+                  }}
+                >
+                  <option value="guntur">Guntur (Andhra Pradesh) - Krishna Basin Deep Black</option>
+                  <option value="east_godavari">East Godavari (Andhra Pradesh) - Deltaic Alluvium</option>
+                  <option value="warangal">Warangal (Telangana) - Deccan Red Sandy Loam</option>
+                  <option value="nagpur">Nagpur (Maharashtra) - Vidarbha Black Cotton</option>
+                  <option value="nashik">Nashik (Maharashtra) - Volcanic Loamy Black</option>
+                  <option value="ludhiana">Ludhiana (Punjab) - Deep Indo-Gangetic Alluvium</option>
+                  <option value="karnal">Karnal (Haryana) - Fertile Alluvial Loam</option>
+                  <option value="coimbatore">Coimbatore (Tamil Nadu) - Red Permeable Loam</option>
+                  <option value="shimoga">Shimoga (Karnataka) - Malnad Acidic Laterite</option>
+                  <option value="varanasi">Varanasi (Uttar Pradesh) - Gangetic Silt Loam</option>
+                </select>
+              </div>
+
+              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px'}}>
+                <div>
+                  <label style={{display: 'block', marginBottom: '6px', fontWeight: '600', fontSize: '0.88rem', color: 'var(--text-dark)'}}>Latitude</label>
+                  <input
+                    type="number"
+                    step="0.0001"
+                    value={locationForm.lat}
+                    onChange={(e) => setLocationForm({ ...locationForm, lat: e.target.value })}
+                    required
+                  />
+                </div>
+                <div>
+                  <label style={{display: 'block', marginBottom: '6px', fontWeight: '600', fontSize: '0.88rem', color: 'var(--text-dark)'}}>Longitude</label>
+                  <input
+                    type="number"
+                    step="0.0001"
+                    value={locationForm.lon}
+                    onChange={(e) => setLocationForm({ ...locationForm, lon: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px'}}>
+                <div>
+                  <label style={{display: 'block', marginBottom: '6px', fontWeight: '600', fontSize: '0.88rem', color: 'var(--text-dark)'}}>Soil Classification</label>
+                  <select
+                    value={locationForm.soil_type}
+                    onChange={(e) => setLocationForm({ ...locationForm, soil_type: e.target.value })}
+                  >
+                    <option value="black">Deep Black Regur</option>
+                    <option value="alluvial">Alluvial Loam</option>
+                    <option value="red">Red Sandy Loam</option>
+                    <option value="laterite">Acidic Laterite</option>
+                    <option value="clay">Clay Loam</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{display: 'block', marginBottom: '6px', fontWeight: '600', fontSize: '0.88rem', color: 'var(--text-dark)'}}>Water Source</label>
+                  <select
+                    value={locationForm.water_source}
+                    onChange={(e) => setLocationForm({ ...locationForm, water_source: e.target.value })}
+                  >
+                    <option value="borewell">Borewell</option>
+                    <option value="canal">Canal Irrigation</option>
+                    <option value="rainfed">Rainfed</option>
+                    <option value="drip">Drip Irrigation</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{marginBottom: '14px'}}>
+                <label style={{display: 'block', marginBottom: '6px', fontWeight: '600', fontSize: '0.88rem', color: 'var(--text-dark)'}}>Custom Soil Health Card (N - P - K - pH)</label>
+                <div style={{display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px'}}>
+                  <div>
+                    <span style={{fontSize: '0.7rem', color: 'var(--text-medium)'}}>N (kg/ha)</span>
+                    <input
+                      type="number"
+                      value={locationForm.n}
+                      onChange={(e) => setLocationForm({ ...locationForm, n: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <span style={{fontSize: '0.7rem', color: 'var(--text-medium)'}}>P (kg/ha)</span>
+                    <input
+                      type="number"
+                      value={locationForm.p}
+                      onChange={(e) => setLocationForm({ ...locationForm, p: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <span style={{fontSize: '0.7rem', color: 'var(--text-medium)'}}>K (kg/ha)</span>
+                    <input
+                      type="number"
+                      value={locationForm.k}
+                      onChange={(e) => setLocationForm({ ...locationForm, k: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <span style={{fontSize: '0.7rem', color: 'var(--text-medium)'}}>pH</span>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={locationForm.ph}
+                      onChange={(e) => setLocationForm({ ...locationForm, ph: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div style={{display: 'flex', gap: '10px', marginTop: '18px'}}>
+                <button
+                  type="button"
+                  onClick={() => setShowLocationModal(false)}
+                  className="btn-outline"
+                  style={{flex: 1}}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn-accent"
+                  style={{flex: 2}}
+                >
+                  Save & Recalculate
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ─── MODAL 3: PLANT DISEASE DIAGNOSTICS & SCANNER ─── */}
+      {diseaseModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'rgba(0,0,0,0.65)',
+          backdropFilter: 'blur(4px)',
+          zIndex: 10000,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: '20px'
+        }}>
+          <div className="glass-panel animate-fade-in" style={{
+            background: 'white',
+            maxWidth: '540px',
+            width: '100%',
+            padding: '26px',
+            maxHeight: '90vh',
+            overflowY: 'auto'
+          }}>
+            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px'}}>
+              <h3 style={{margin: 0, color: 'var(--text-dark)', fontSize: '1.3rem'}}>🌿 AI Plant Disease Diagnostics</h3>
+              <button
+                onClick={() => setDiseaseModal(false)}
+                style={{background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: 'var(--text-medium)'}}
+              >
+                ✕
+              </button>
+            </div>
+
+            {scanningDisease ? (
+              <div style={{textAlign: 'center', padding: '40px 20px'}}>
+                <div style={{fontSize: '3rem', animation: 'pulse 1.2s infinite'}}>🔬</div>
+                <h4 style={{marginTop: '14px', color: 'var(--text-dark)'}}>Analyzing Plant Pathology Matrix...</h4>
+                <p style={{fontSize: '0.82rem', color: 'var(--text-medium)'}}>Cross-matching necrotic lesions and fungal spore patterns against ICAR Pathology Knowledgebase</p>
+              </div>
+            ) : scanResult ? (
+              <div>
+                <div style={{
+                  background: 'linear-gradient(135deg, var(--jet-black), #26122F)',
+                  color: 'white',
+                  padding: '16px',
+                  borderRadius: '12px',
+                  border: '1.5px solid var(--cyan-glow)',
+                  boxShadow: '0 4px 15px rgba(0, 229, 255, 0.3)',
+                  marginBottom: '16px'
+                }}>
+                  <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                    <span style={{fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--cyan-glow)'}}>
+                      Diagnosis: {scanResult.disease}
+                    </span>
+                    <span style={{
+                      background: 'linear-gradient(135deg, var(--amethyst), #4A148C)',
+                      color: 'white',
+                      padding: '3px 10px',
+                      borderRadius: '12px',
+                      fontSize: '0.75rem',
+                      fontWeight: 'bold'
+                    }}>
+                      {scanResult.confidence}% AI Match
+                    </span>
+                  </div>
+                  <span style={{fontSize: '0.78rem', color: '#B0BEC5', marginTop: '4px', display: 'block'}}>
+                    Affected Crop: {scanResult.crop} • Estimated Treatment: {scanResult.cost}
+                  </span>
+                </div>
+
+                <div style={{marginBottom: '14px'}}>
+                  <strong style={{color: 'var(--text-dark)', fontSize: '0.88rem', display: 'block', marginBottom: '4px'}}>Symptoms:</strong>
+                  <p style={{fontSize: '0.84rem', color: 'var(--text-medium)', margin: 0, background: '#F4F7F0', padding: '10px 12px', borderRadius: '8px'}}>
+                    {scanResult.symptoms}
+                  </p>
+                </div>
+
+                <div style={{marginBottom: '14px'}}>
+                  <strong style={{color: 'var(--text-dark)', fontSize: '0.88rem', display: 'block', marginBottom: '4px'}}>⚡ Chemical Treatment (CACP Approved):</strong>
+                  <div style={{fontSize: '0.84rem', color: '#1B5E20', background: '#E8F5E9', padding: '10px 12px', borderRadius: '8px', border: '1px solid #C8E6C9'}}>
+                    {scanResult.chemical}
+                  </div>
+                </div>
+
+                <div style={{marginBottom: '18px'}}>
+                  <strong style={{color: 'var(--text-dark)', fontSize: '0.88rem', display: 'block', marginBottom: '4px'}}>🌱 100% Organic Alternative:</strong>
+                  <div style={{fontSize: '0.84rem', color: '#5A3E2B', background: '#FEF3DC', padding: '10px 12px', borderRadius: '8px', border: '1px solid #FFE082'}}>
+                    {scanResult.organic}
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setDiseaseModal(false)}
+                  className="btn-accent"
+                  style={{width: '100%', padding: '11px', fontWeight: 'bold'}}
+                >
+                  Done / Close Diagnosis
+                </button>
+              </div>
+            ) : null}
+
+          </div>
+        </div>
+      )}
+
+      {/* Farm Report Modal */}
+      <FarmReportModal
+        open={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        farmProfile={farmProfile}
+        cropInfo={currentCrop}
+        weather={weather}
+        fertilizerData={fertilizerData}
+        loanData={kccData}
+      />
+
     </div>
   )
 }

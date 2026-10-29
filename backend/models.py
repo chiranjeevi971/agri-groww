@@ -8,8 +8,10 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     phone_number = Column(String, unique=True, index=True)
     hashed_password = Column(String) # Phase 7: JWT Auth
+    full_name = Column(String, nullable=True)
     language = Column(String, default="en")
     village = Column(String, nullable=True)
+    created_at = Column(Date, nullable=True)
 
     farms = relationship("Farm", back_populates="owner")
 
@@ -34,13 +36,28 @@ class Crop(Base):
     name = Column(String, index=True)
     farming_method = Column(String) # organic, conventional
     plant_date = Column(Date)
-    status = Column(String, default="active")
+    status = Column(String, default="active") # active, harvested, planned
     farm_id = Column(Integer, ForeignKey("farms.id"))
+
+    # Enhanced crop cycle management fields
+    acres_allocated = Column(Float, default=1.0)
+    sowing_date = Column(Date, nullable=True)
+    expected_harvest_date = Column(Date, nullable=True)
+    district_id = Column(String, nullable=True)
+    soil_n = Column(Float, nullable=True)
+    soil_p = Column(Float, nullable=True)
+    soil_k = Column(Float, nullable=True)
+    soil_ph = Column(Float, nullable=True)
+    water_source = Column(String, nullable=True)
+    location_name = Column(String, nullable=True)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
 
     farm = relationship("Farm", back_populates="crops")
     tasks = relationship("Task", back_populates="crop")
     expenses = relationship("Expense", back_populates="crop")
     revenues = relationship("Revenue", back_populates="crop")
+    diseases = relationship("DiseaseRecord", back_populates="crop")
 
 class Task(Base):
     __tablename__ = "tasks"
@@ -75,3 +92,19 @@ class Revenue(Base):
     date_received = Column(Date)
 
     crop = relationship("Crop", back_populates="revenues")
+
+class DiseaseRecord(Base):
+    __tablename__ = "disease_records"
+
+    id = Column(Integer, primary_key=True, index=True)
+    crop_id = Column(Integer, ForeignKey("crops.id"), nullable=True)
+    crop_name = Column(String)
+    disease_name = Column(String)
+    confidence = Column(Float)
+    detected_date = Column(Date)
+    symptoms = Column(String)
+    treatment = Column(String)
+    image_url = Column(String, nullable=True)
+
+    crop = relationship("Crop", back_populates="diseases")
+

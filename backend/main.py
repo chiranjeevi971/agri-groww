@@ -671,6 +671,262 @@ def diagnose_plant_disease(payload: dict, db: Session = Depends(get_db)):
         }
     }
 
+# ─── Soil Fertility Auto-Detect & Manual Soil Health Card (SHC) Endpoints ──
+
+INDIAN_SOIL_ZONE_BENCHMARKS = [
+    {
+        "id": "guntur",
+        "name": "Krishna Basin Deep Black Regur Soil",
+        "state": "Andhra Pradesh",
+        "lat": 16.3067,
+        "lon": 80.4365,
+        "soil_type": "black",
+        "n": 110.0,
+        "p": 52.0,
+        "k": 26.0,
+        "ph": 7.8,
+        "organic_carbon": 0.62,
+        "electrical_conductivity": 0.38,
+        "zinc": 0.82,
+        "iron": 5.1,
+        "sulphur": 11.5,
+        "fertility_score": 84.0,
+        "description": "Montmorillonite-rich black cotton soil with high moisture retention capacity. Ideal for cotton, chillies and pulses."
+    },
+    {
+        "id": "east_godavari",
+        "name": "Godavari Deltaic Alluvial Soil",
+        "state": "Andhra Pradesh",
+        "lat": 16.9891,
+        "lon": 82.2475,
+        "soil_type": "alluvial",
+        "n": 85.0,
+        "p": 48.0,
+        "k": 42.0,
+        "ph": 6.7,
+        "organic_carbon": 0.74,
+        "electrical_conductivity": 0.32,
+        "zinc": 0.95,
+        "iron": 7.2,
+        "sulphur": 14.0,
+        "fertility_score": 88.0,
+        "description": "Highly fertile riverine alluvium with balanced organic matter. Excellent for intensive paddy and sugarcane."
+    },
+    {
+        "id": "warangal",
+        "name": "Telangana Plateau Red Sandy Loam (Chalka)",
+        "state": "Telangana",
+        "lat": 17.9689,
+        "lon": 79.5941,
+        "soil_type": "red",
+        "n": 48.0,
+        "p": 62.0,
+        "k": 24.0,
+        "ph": 6.5,
+        "organic_carbon": 0.45,
+        "electrical_conductivity": 0.25,
+        "zinc": 0.65,
+        "iron": 8.5,
+        "sulphur": 9.0,
+        "fertility_score": 76.0,
+        "description": "Well-drained porous red soil rich in iron oxides. Responsive to organic composting and nitrogen fertilization."
+    },
+    {
+        "id": "nagpur",
+        "name": "Vidarbha Basaltic Deep Black Cotton Soil",
+        "state": "Maharashtra",
+        "lat": 21.1458,
+        "lon": 79.0882,
+        "soil_type": "black",
+        "n": 105.0,
+        "p": 46.0,
+        "k": 22.0,
+        "ph": 7.6,
+        "organic_carbon": 0.58,
+        "electrical_conductivity": 0.40,
+        "zinc": 0.75,
+        "iron": 4.8,
+        "sulphur": 10.2,
+        "fertility_score": 82.0,
+        "description": "Heavy basaltic clay soil suited for rainfed cotton, soybean, and orange horticulture."
+    },
+    {
+        "id": "ludhiana",
+        "name": "Indo-Gangetic Deep Alluvial Silt Loam",
+        "state": "Punjab",
+        "lat": 30.9010,
+        "lon": 75.8573,
+        "soil_type": "alluvial",
+        "n": 90.0,
+        "p": 50.0,
+        "k": 36.0,
+        "ph": 7.1,
+        "organic_carbon": 0.68,
+        "electrical_conductivity": 0.30,
+        "zinc": 1.10,
+        "iron": 6.4,
+        "sulphur": 13.5,
+        "fertility_score": 89.0,
+        "description": "Deep fertile alluvium of the Sutlej basin. High responsiveness to balanced NPK in wheat-rice rotation."
+    },
+    {
+        "id": "coimbatore",
+        "name": "Western Ghats Rainshadow Red Permeable Loam",
+        "state": "Tamil Nadu",
+        "lat": 11.0168,
+        "lon": 76.9558,
+        "soil_type": "red",
+        "n": 42.0,
+        "p": 58.0,
+        "k": 28.0,
+        "ph": 6.8,
+        "organic_carbon": 0.52,
+        "electrical_conductivity": 0.28,
+        "zinc": 0.70,
+        "iron": 7.8,
+        "sulphur": 10.0,
+        "fertility_score": 79.0,
+        "description": "Permeable sandy clay loam with good drainage. Suitable for cotton, maize and millets under drip irrigation."
+    }
+]
+
+def calculate_fertility_index(n: float, p: float, k: float, ph: float, oc: float = 0.6) -> float:
+    """Calculates comprehensive ICAR Soil Fertility Health Index (0-100)."""
+    # N index (Optimal around 140-180 kg/ha)
+    n_score = min(100.0, (n / 160.0) * 100.0)
+    # P index (Optimal around 45-60 kg/ha)
+    p_score = min(100.0, (p / 55.0) * 100.0)
+    # K index (Optimal around 35-45 kg/ha)
+    k_score = min(100.0, (k / 40.0) * 100.0)
+    # pH index (Optimal 6.5 - 7.5)
+    ph_dev = abs(ph - 7.0)
+    ph_score = max(40.0, 100.0 - (ph_dev * 25.0))
+    # OC index (Optimal > 0.75%)
+    oc_score = min(100.0, (oc / 0.75) * 100.0)
+
+    score = (n_score * 0.30) + (p_score * 0.25) + (k_score * 0.20) + (ph_score * 0.15) + (oc_score * 0.10)
+    return round(min(98.0, max(45.0, score)), 1)
+
+@app.get("/soil/auto-detect")
+def auto_detect_soil_fertility(lat: float = 16.3067, lon: float = 80.4365):
+    """Automatically maps GPS latitude & longitude to the nearest Indian agro-ecological soil benchmark."""
+    import math
+
+    best_zone = INDIAN_SOIL_ZONE_BENCHMARKS[0]
+    min_dist = float("inf")
+
+    for zone in INDIAN_SOIL_ZONE_BENCHMARKS:
+        # Euclidean distance approximation for geo coordinates
+        dist = math.sqrt((zone["lat"] - lat)**2 + (zone["lon"] - lon)**2)
+        if dist < min_dist:
+            min_dist = dist
+            best_zone = zone
+
+    return {
+        "status": "success",
+        "method": "auto_gps_inference",
+        "coordinates": {"lat": lat, "lon": lon},
+        "nearest_zone": best_zone["name"],
+        "district_id": best_zone["id"],
+        "state": best_zone["state"],
+        "soil_type": best_zone["soil_type"],
+        "soil_profile": {
+            "n": best_zone["n"],
+            "p": best_zone["p"],
+            "k": best_zone["k"],
+            "ph": best_zone["ph"],
+            "organic_carbon": best_zone["organic_carbon"],
+            "electrical_conductivity": best_zone["electrical_conductivity"],
+            "zinc": best_zone["zinc"],
+            "iron": best_zone["iron"],
+            "sulphur": best_zone["sulphur"],
+            "fertility_score": best_zone["fertility_score"],
+            "description": best_zone["description"]
+        }
+    }
+
+@app.get("/soil/reports")
+def get_soil_reports(db: Session = Depends(get_db)):
+    """Returns all saved manual Soil Health Card (SHC) laboratory test reports."""
+    reports = db.query(models.SoilReport).order_by(models.SoilReport.id.desc()).all()
+    results = []
+    for r in reports:
+        results.append({
+            "id": r.id,
+            "report_title": r.report_title,
+            "lab_name": r.lab_name or "District Soil Testing Laboratory",
+            "sample_date": r.sample_date.strftime("%Y-%m-%d") if r.sample_date else None,
+            "soil_type": r.soil_type,
+            "n": r.n,
+            "p": r.p,
+            "k": r.k,
+            "ph": r.ph,
+            "organic_carbon": r.organic_carbon,
+            "electrical_conductivity": r.electrical_conductivity,
+            "zinc": r.zinc,
+            "iron": r.iron,
+            "sulphur": r.sulphur,
+            "fertility_score": r.fertility_score,
+            "notes": r.notes,
+            "created_at": r.created_at.strftime("%Y-%m-%d") if r.created_at else None
+        })
+    return {"status": "success", "total_reports": len(results), "reports": results}
+
+@app.post("/soil/reports")
+def create_soil_report(payload: schemas.SoilReportCreate, db: Session = Depends(get_db)):
+    """Stores a manual Soil Health Card (SHC) laboratory report with automated nutrient grading."""
+    score = calculate_fertility_index(
+        n=payload.n,
+        p=payload.p,
+        k=payload.k,
+        ph=payload.ph,
+        oc=payload.organic_carbon or 0.62
+    )
+
+    db_report = models.SoilReport(
+        report_title=payload.report_title,
+        lab_name=payload.lab_name,
+        sample_date=payload.sample_date or date.today(),
+        soil_type=payload.soil_type,
+        n=payload.n,
+        p=payload.p,
+        k=payload.k,
+        ph=payload.ph,
+        organic_carbon=payload.organic_carbon,
+        electrical_conductivity=payload.electrical_conductivity,
+        zinc=payload.zinc,
+        iron=payload.iron,
+        boron=payload.boron,
+        sulphur=payload.sulphur,
+        fertility_score=score,
+        notes=payload.notes,
+        created_at=date.today()
+    )
+    db.add(db_report)
+    db.commit()
+    db.refresh(db_report)
+
+    # Automated nutrient status evaluation
+    n_status = "Deficit" if payload.n < 120 else ("Optimal" if payload.n <= 200 else "High")
+    p_status = "Deficit" if payload.p < 35 else ("Optimal" if payload.p <= 65 else "High")
+    k_status = "Deficit" if payload.k < 30 else ("Optimal" if payload.k <= 55 else "High")
+    ph_status = "Acidic" if payload.ph < 6.5 else ("Optimal Neutral" if payload.ph <= 7.8 else "Alkaline")
+    oc_status = "Low" if (payload.organic_carbon or 0) < 0.5 else ("Medium" if (payload.organic_carbon or 0) <= 0.75 else "High")
+
+    return {
+        "status": "success",
+        "message": "Manual Soil Health Card report successfully registered in database",
+        "report_id": db_report.id,
+        "fertility_score": score,
+        "evaluation": {
+            "nitrogen_status": n_status,
+            "phosphorus_status": p_status,
+            "potassium_status": k_status,
+            "ph_status": ph_status,
+            "organic_carbon_status": oc_status
+        }
+    }
+
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 10000))

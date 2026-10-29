@@ -108,3 +108,32 @@ class DiseaseRecord(Base):
 
     crop = relationship("Crop", back_populates="diseases")
 
+class SoilReport(Base):
+    __tablename__ = "soil_reports"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    report_title = Column(String) # e.g. "Govt SHC Lab Test #421"
+    lab_name = Column(String, nullable=True)
+    sample_date = Column(Date, nullable=True)
+    soil_type = Column(String, default="black")
+    
+    # Primary Macronutrients
+    n = Column(Float) # Nitrogen kg/ha
+    p = Column(Float) # Phosphorus kg/ha
+    k = Column(Float) # Potassium kg/ha
+    ph = Column(Float) # pH
+    
+    # Secondary & Micronutrients (Official Soil Health Card format)
+    organic_carbon = Column(Float, nullable=True) # OC % (e.g. 0.65)
+    electrical_conductivity = Column(Float, nullable=True) # EC dS/m (e.g. 0.42)
+    zinc = Column(Float, nullable=True) # Zn ppm
+    iron = Column(Float, nullable=True) # Fe ppm
+    boron = Column(Float, nullable=True) # B ppm
+    sulphur = Column(Float, nullable=True) # S ppm
+    
+    fertility_score = Column(Float, default=80.0) # 0-100 score
+    notes = Column(String, nullable=True)
+    created_at = Column(Date, nullable=True)
+
+

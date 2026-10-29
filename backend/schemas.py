@@ -185,6 +185,36 @@ class NotificationPayloadRequest(BaseModel):
     farm_data: Optional[dict] = None
     loan_data: Optional[dict] = None
 
+class SoilReportBase(BaseModel):
+    report_title: str = "Soil Health Card (SHC) Lab Test"
+    lab_name: Optional[str] = "Govt District Soil Testing Lab"
+    sample_date: Optional[date] = None
+    soil_type: str = "black"
+    n: float # Nitrogen kg/ha
+    p: float # Phosphorus kg/ha
+    k: float # Potassium kg/ha
+    ph: float # pH
+    organic_carbon: Optional[float] = 0.65 # OC %
+    electrical_conductivity: Optional[float] = 0.45 # EC dS/m
+    zinc: Optional[float] = 0.85 # Zn ppm
+    iron: Optional[float] = 4.5 # Fe ppm
+    boron: Optional[float] = 0.5 # B ppm
+    sulphur: Optional[float] = 12.0 # S ppm
+    notes: Optional[str] = None
+
+class SoilReportCreate(SoilReportBase):
+    pass
+
+class SoilReport(SoilReportBase):
+    id: int
+    user_id: Optional[int] = None
+    fertility_score: float = 84.0
+    created_at: Optional[date] = None
+
+    class Config:
+        from_attributes = True
+
+
 
 
 

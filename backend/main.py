@@ -62,8 +62,22 @@ def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 @app.post("/users/login")
 def login_user(user: schemas.UserLogin, db: Session = Depends(get_db)):
     db_user = db.query(models.User).filter(models.User.phone_number == user.phone_number).first()
-    if not db_user or not auth.verify_password(user.password, db_user.hashed_password):
-        raise HTTPException(status_code=400, detail="Incorrect phone number or password")
+    if not db_user:
+        # Seamlessly create user on first sign in (No separate registration required)
+        hashed_pw = auth.get_password_hash(user.password)
+        db_user = models.User(
+            phone_number=user.phone_number,
+            hashed_password=hashed_pw,
+            full_name="Farmer",
+            language="en",
+            village="Farm Area",
+            created_at=date.today()
+        )
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+    elif not auth.verify_password(user.password, db_user.hashed_password):
+        raise HTTPException(status_code=400, detail="Incorrect password for this phone number")
     
     access_token = auth.create_access_token(data={"sub": db_user.phone_number})
     return {
@@ -73,7 +87,7 @@ def login_user(user: schemas.UserLogin, db: Session = Depends(get_db)):
         "phone_number": db_user.phone_number,
         "full_name": db_user.full_name or "Farmer",
         "language": db_user.language or "en",
-        "village": db_user.village or "Guntur"
+        "village": db_user.village or "Farm Area"
     }
 
 @app.post("/crops/", response_model=schemas.Crop)

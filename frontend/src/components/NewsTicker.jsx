@@ -14,7 +14,7 @@ const NewsTicker = () => {
   const navigate = useNavigate()
   const [news, setNews] = React.useState(DEFAULT_NEWS)
   const [isPaused, setIsPaused] = React.useState(false)
-  const [speed, setSpeed] = React.useState(95) // 95s = slow, easy reading
+  const [speed, setSpeed] = React.useState(180) // 180s = very slow, comfortable reading
 
   React.useEffect(() => {
     fetch(`${API_BASE}/loans/schemes`)
@@ -30,137 +30,172 @@ const NewsTicker = () => {
   }, [])
 
   return (
-    <div className="news-ticker-container" style={{
-      position: 'sticky',
-      top: 0,
-      zIndex: 999,
-      background: 'linear-gradient(90deg, #121212, #2A1E14 40%, #121212)',
-      color: '#ffffff',
-      display: 'flex',
-      alignItems: 'center',
-      borderBottom: '2px solid var(--cyan-glow)',
-      boxShadow: '0 2px 12px rgba(0, 229, 255, 0.2)',
-      height: '40px',
-      overflow: 'hidden'
-    }}>
-      {/* Live Badge */}
+    <div style={{ position: 'sticky', top: 0, zIndex: 999 }}>
+      {/* Top Navigation Brand Bar (Matches Screenshot Header) */}
       <div style={{
-        background: 'linear-gradient(135deg, var(--amethyst), #4A148C)',
+        background: 'linear-gradient(90deg, #07152B, #0B1E3C 40%, #0B274F)',
         color: '#ffffff',
-        padding: '0 12px',
-        height: '100%',
         display: 'flex',
         alignItems: 'center',
-        fontWeight: 'bold',
-        fontSize: '0.78rem',
-        letterSpacing: '0.5px',
-        whiteSpace: 'nowrap',
-        boxShadow: '2px 0 8px rgba(0,0,0,0.4)',
-        zIndex: 2,
-        cursor: 'pointer'
-      }} onClick={() => navigate('/govt-loans')}>
-        <span style={{
-          display: 'inline-block',
-          width: '8px',
-          height: '8px',
-          borderRadius: '50%',
-          background: 'var(--cyan-glow)',
-          marginRight: '6px',
-          boxShadow: '0 0 6px var(--cyan-glow)',
-          animation: 'pulse 1.5s infinite'
-        }}></span>
-        GOVT POLICY RADAR
-      </div>
-
-      {/* Marquee Animation */}
-      <div 
-        style={{
-          flex: 1,
-          overflow: 'hidden',
-          position: 'relative',
-          height: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          cursor: 'pointer'
-        }}
-        onClick={() => navigate('/govt-loans')}
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
-        title="Hover to pause or click to view Govt Schemes Hub"
-      >
+        justifyContent: 'space-between',
+        padding: '10px 18px',
+        borderBottom: '1px solid rgba(216, 185, 107, 0.3)',
+        boxShadow: '0 2px 12px rgba(11, 30, 60, 0.35)'
+      }}>
+        {/* Brand Logo & Name */}
         <div 
-          className="news-ticker-text" 
-          style={{
-            display: 'inline-block',
-            whiteSpace: 'nowrap',
-            fontSize: '0.82rem',
-            lineHeight: '40px',
-            animationDuration: `${speed}s`,
-            animationPlayState: isPaused ? 'paused' : 'running'
-          }}
+          onClick={() => navigate('/dashboard')} 
+          style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
         >
-          {news.concat(news).map((item, idx) => (
-            <span key={idx} style={{ marginRight: '40px', display: 'inline-flex', alignItems: 'center' }}>
-              <span style={{
-                background: 'rgba(0, 229, 255, 0.15)',
-                color: 'var(--cyan-glow)',
-                border: '1px solid rgba(0, 229, 255, 0.4)',
-                padding: '2px 7px',
-                borderRadius: '4px',
-                fontSize: '0.72rem',
-                fontWeight: 'bold',
-                marginRight: '8px'
-              }}>
-                {item.tag || 'GOVT UPDATE'}
-              </span>
-              <span style={{ color: '#F0F4F8' }}>{item.headline}</span>
+          <div style={{
+            width: '36px',
+            height: '36px',
+            borderRadius: '10px',
+            background: 'linear-gradient(135deg, #E3B74E, #D19F38)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '1.25rem',
+            boxShadow: '0 0 10px rgba(227, 183, 78, 0.45)'
+          }}>
+            🌾
+          </div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <strong style={{ fontSize: '1.15rem', color: '#E3B74E', letterSpacing: '-0.3px' }}>Agri-Grow</strong>
+            </div>
+            <span style={{ fontSize: '0.72rem', color: '#CBD5E1', display: 'block', opacity: 0.9 }}>
+              Smart Farming • Better Tomorrow
             </span>
-          ))}
+          </div>
+        </div>
+
+        {/* Action Controls */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <button
+            onClick={() => setIsPaused(!isPaused)}
+            style={{
+              background: 'rgba(255, 255, 255, 0.08)',
+              color: isPaused ? '#E3B74E' : '#E2E8F0',
+              border: '1px solid rgba(227, 183, 78, 0.4)',
+              padding: '6px 12px',
+              borderRadius: '20px',
+              cursor: 'pointer',
+              fontSize: '0.75rem',
+              fontWeight: '700',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              transition: 'all 0.2s'
+            }}
+            title={isPaused ? "Resume Scrolling" : "Pause Scrolling"}
+          >
+            <span>{isPaused ? '▶ Play' : '⏸ Pause'}</span>
+          </button>
+
+          <button
+            onClick={() => navigate('/govt-loans')}
+            style={{
+              background: 'linear-gradient(135deg, #E3B74E, #C99C32)',
+              color: '#0B1E3C',
+              border: 'none',
+              padding: '7px 16px',
+              borderRadius: '20px',
+              fontWeight: '800',
+              fontSize: '0.78rem',
+              cursor: 'pointer',
+              boxShadow: '0 2px 10px rgba(227, 183, 78, 0.4)',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            Explore 4X Loans →
+          </button>
         </div>
       </div>
 
-      {/* Speed & Pause Controls */}
-      <div style={{ display: 'flex', alignItems: 'center', height: '100%', zIndex: 2 }}>
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            setIsPaused(!isPaused)
-          }}
-          style={{
-            background: 'transparent',
-            color: isPaused ? 'var(--cyan-glow)' : '#ccc',
-            border: 'none',
-            borderLeft: '1px solid rgba(255, 255, 255, 0.15)',
-            padding: '0 10px',
-            height: '100%',
-            cursor: 'pointer',
-            fontSize: '0.78rem',
-            fontWeight: '600'
-          }}
-          title={isPaused ? "Resume Scrolling" : "Pause Scrolling"}
-        >
-          {isPaused ? '▶ Play' : '⏸ Pause'}
-        </button>
+      {/* Slow Marquee Banner */}
+      <div className="news-ticker-container" style={{
+        background: '#07152B',
+        display: 'flex',
+        alignItems: 'center',
+        height: '34px',
+        overflow: 'hidden'
+      }}>
+        {/* Live Badge */}
+        <div style={{
+          background: 'linear-gradient(135deg, #0B274F, #07152B)',
+          color: '#E3B74E',
+          padding: '0 12px',
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          fontWeight: '800',
+          fontSize: '0.72rem',
+          letterSpacing: '0.5px',
+          whiteSpace: 'nowrap',
+          borderRight: '1px solid rgba(227, 183, 78, 0.4)',
+          zIndex: 2,
+          cursor: 'pointer'
+        }} onClick={() => navigate('/govt-loans')}>
+          <span style={{
+            display: 'inline-block',
+            width: '7px',
+            height: '7px',
+            borderRadius: '50%',
+            background: '#E3B74E',
+            marginRight: '6px',
+            boxShadow: '0 0 6px #E3B74E',
+            animation: 'pulse 1.5s infinite'
+          }}></span>
+          LIVE RADAR
+        </div>
 
-        <button 
-          onClick={() => navigate('/govt-loans')}
+        {/* Marquee Animation */}
+        <div 
           style={{
-            background: 'linear-gradient(135deg, var(--accent), var(--accent-dark))',
-            color: '#ffffff',
-            border: 'none',
-            padding: '0 14px',
+            flex: 1,
+            overflow: 'hidden',
+            position: 'relative',
             height: '100%',
-            fontWeight: 'bold',
-            fontSize: '0.75rem',
-            cursor: 'pointer',
-            whiteSpace: 'nowrap',
-            transition: 'background 0.2s'
+            display: 'flex',
+            alignItems: 'center',
+            cursor: 'pointer'
           }}
-          onMouseEnter={(e) => e.target.style.background = '#E8A030'}
-          onMouseLeave={(e) => e.target.style.background = 'var(--accent)'}
+          onClick={() => navigate('/govt-loans')}
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+          title="Hover to pause or click to view Govt Schemes Hub"
         >
-          Explore 4% Loans →
-        </button>
+          <div 
+            className="news-ticker-text" 
+            style={{
+              display: 'inline-block',
+              whiteSpace: 'nowrap',
+              fontSize: '0.80rem',
+              lineHeight: '34px',
+              animationDuration: `${speed}s`,
+              animationPlayState: isPaused ? 'paused' : 'running'
+            }}
+          >
+            {news.concat(news).map((item, idx) => (
+              <span key={idx} style={{ marginRight: '45px', display: 'inline-flex', alignItems: 'center' }}>
+                <span style={{
+                  background: 'rgba(227, 183, 78, 0.15)',
+                  color: '#E3B74E',
+                  border: '1px solid rgba(227, 183, 78, 0.4)',
+                  padding: '1px 6px',
+                  borderRadius: '4px',
+                  fontSize: '0.70rem',
+                  fontWeight: '700',
+                  marginRight: '8px'
+                }}>
+                  {item.tag || 'GOVT UPDATE'}
+                </span>
+                <span style={{ color: '#F1F5F9' }}>{item.headline}</span>
+              </span>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   )

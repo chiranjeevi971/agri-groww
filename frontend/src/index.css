@@ -8,52 +8,57 @@
    ============================================================ */
 
 :root {
-  /* --- 60% Sage Green: Primary & Background Colors --- */
-  --primary:        #87A96B;   /* Main Sage Green — nav bars, icons, primary buttons */
-  --primary-light:  #A3BE8C;   /* Lighter Sage — hover states, secondary buttons */
-  --primary-dark:   #6B8F53;   /* Deeper Sage — active states, pressed buttons */
-  --bg-color:       #F4F7F0;   /* Near-white with a sage tint — main page background */
-  --secondary:      #DDE8D5;   /* Very light sage — card backgrounds, subtle fills */
+  /* --- User Requested Brand Color System --- */
+  --primary:        #0B1E3C;   /* Deep Imperial Navy */
+  --secondary:      #0B274F;   /* Rich Navy Blue */
+  --accent:         #E3B74E;   /* Warm Harvest Gold / Amber */
+  --background:     #EFE4C6;   /* Warm Parchment / Cream Background */
+  --card:           #FFF9ED;   /* Warm Buttercream Card Background */
+  --surface:        #F8F4E8;   /* Soft Light Surface */
+  --success:        #16804A;   /* Forest Agriculture Green */
+  --border:         #D8B96B;   /* Golden Sand Border */
+  --text:           #142B4D;   /* Deep Navy Text */
+  --muted:          #64748B;   /* Slate Muted Gray */
 
-  /* --- 30% Walnut Brown: Text, Depth & Structure --- */
-  --text-dark:      #5A3E2B;   /* Main Walnut Brown — headings, body text */
-  --text-medium:    #7A5540;   /* Medium walnut — subheadings, labels */
-  --text-light:     #A07858;   /* Light walnut — captions, placeholders, hints */
-  --border-color:   #C4A882;   /* Warm walnut border for cards and inputs */
+  /* --- Aliases & Supporting Palette --- */
+  --bg-color:       var(--background);
+  --border-color:   var(--border);
+  --text-dark:      var(--text);
+  --text-medium:    #324A6D;   /* Medium Navy Blue */
+  --text-light:     var(--muted);
+  --primary-light:  #163668;
+  --primary-dark:   #07152B;
+  --accent-light:   #F0C96E;
+  --accent-dark:    #C99C32;
+  --accent-bg:      #FEF7E6;
 
-  /* --- 10% Amber Glow: Accents, CTAs & Highlights --- */
-  --accent:         #D58511;   /* Amber Glow — primary action buttons, badges */
-  --accent-light:   #E8A030;   /* Light amber — hover on accent, highlights */
-  --accent-dark:    #B36E0D;   /* Deep amber — pressed accent states */
-  --accent-bg:      #FEF3DC;   /* Amber tint background — alert cards, banners */
-
-  /* --- NEW: High-Contrast Active State Colors --- */
-  --jet-black:      #121212;   /* Jet Black — dark backgrounds, selected overlays */
-  --amethyst:       #7B1FA2;   /* Royal Amethyst — selected crop badges, active modals */
-  --amethyst-light: #9C27B0;   /* Lighter amethyst — hover on amethyst elements */
-  --amethyst-bg:    rgba(123, 31, 162, 0.12); /* Amethyst tint background */
-  --cyan-glow:      #00E5FF;   /* Electric Cyan — active tabs, focus rings, glows */
-  --cyan-dark:      #00B4D8;   /* Darker cyan — pressed/active cyan states */
-  --cyan-bg:        rgba(0, 229, 255, 0.10);  /* Cyan tint background */
+  /* --- High-Contrast Navy & Gold Active State Colors --- */
+  --jet-black:      #0B1E3C;   /* Deep Navy — selected active backgrounds */
+  --amethyst:       #0B274F;   /* Rich Navy — badges & accents */
+  --amethyst-light: #163668;
+  --amethyst-bg:    rgba(11, 39, 79, 0.12);
+  --cyan-glow:      #E3B74E;   /* Gold Glow — active tabs, focus rings, highlights */
+  --cyan-dark:      #C99C32;
+  --cyan-bg:        rgba(227, 183, 78, 0.15);
 
   /* --- Glass & Shadows --- */
-  --glass-bg:       rgba(244, 247, 240, 0.80);   /* Sage-tinted glass panels */
-  --glass-border:   rgba(135, 169, 107, 0.25);   /* Sage-tinted glass border */
-  --glass-shadow:   0 8px 32px rgba(90, 62, 43, 0.10); /* Walnut-tinted shadow */
+  --glass-bg:       rgba(255, 249, 237, 0.95);
+  --glass-border:   var(--border);
+  --glass-shadow:   0 8px 30px rgba(11, 30, 60, 0.08);
 }
 
 /* ============================================================
-   DARK MODE OVERRIDES
+   DARK MODE OVERRIDES (Navy & Gold Warm Theme)
    ============================================================ */
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg-color:      #1E2618;   /* Very dark sage for background */
-    --secondary:     #2A3620;   /* Dark sage panels */
-    --text-dark:     #E8D5BE;   /* Light walnut for readable text */
-    --text-medium:   #C4A882;   /* Medium walnut for subtext */
-    --text-light:    #A07858;   /* Walnut hint text */
-    --glass-bg:      rgba(30, 38, 24, 0.85);
-    --glass-border:  rgba(135, 169, 107, 0.20);
+    --bg-color:      #07152B;   /* Deepest Navy for background */
+    --secondary:     #0B274F;   /* Rich Navy panels */
+    --text-dark:     #FFF9ED;   /* Warm Buttercream for readable text */
+    --text-medium:   #E3B74E;   /* Warm Gold for subtext */
+    --text-light:    #94A3B8;   /* Muted text */
+    --glass-bg:      rgba(11, 30, 60, 0.90);
+    --glass-border:  #D8B96B;
   }
 }
 
@@ -72,38 +77,76 @@ html {
 
 body {
   font-family: 'Outfit', sans-serif;
-  background-color: var(--bg-color);
-  color: var(--text-dark);
+  background-color: var(--background);
+  color: var(--text);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   transition: background-color 0.3s ease, color 0.3s ease;
+  position: relative;
+  min-height: 100vh;
 }
 
 /* ============================================================
-   GLASSMORPHISM PANEL
+   DECORATIVE WHEAT MOTIF BACKGROUND (Matches User Screenshot)
+   ============================================================ */
+body::before {
+  content: "";
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 180px;
+  height: 240px;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.18;
+  background-repeat: no-repeat;
+  background-position: bottom left;
+  background-size: contain;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 150'%3E%3Cpath d='M10,140 Q30,80 50,20 Q60,10 70,2' stroke='%23C49B38' stroke-width='3' fill='none'/%3E%3Cpath d='M45,35 Q20,25 25,12 Q40,15 48,30' fill='%23C49B38'/%3E%3Cpath d='M52,40 Q75,30 70,18 Q55,20 50,38' fill='%23C49B38'/%3E%3Cpath d='M40,60 Q15,50 20,38 Q35,40 43,55' fill='%23C49B38'/%3E%3Cpath d='M47,65 Q72,55 67,43 Q52,45 45,63' fill='%23C49B38'/%3E%3Cpath d='M35,85 Q10,75 15,63 Q30,65 38,80' fill='%23C49B38'/%3E%3Cpath d='M42,90 Q67,80 62,68 Q47,70 40,88' fill='%23C49B38'/%3E%3C/svg%3E");
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  width: 180px;
+  height: 240px;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.18;
+  background-repeat: no-repeat;
+  background-position: bottom right;
+  background-size: contain;
+  transform: scaleX(-1);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 150'%3E%3Cpath d='M10,140 Q30,80 50,20 Q60,10 70,2' stroke='%23C49B38' stroke-width='3' fill='none'/%3E%3Cpath d='M45,35 Q20,25 25,12 Q40,15 48,30' fill='%23C49B38'/%3E%3Cpath d='M52,40 Q75,30 70,18 Q55,20 50,38' fill='%23C49B38'/%3E%3Cpath d='M40,60 Q15,50 20,38 Q35,40 43,55' fill='%23C49B38'/%3E%3Cpath d='M47,65 Q72,55 67,43 Q52,45 45,63' fill='%23C49B38'/%3E%3Cpath d='M35,85 Q10,75 15,63 Q30,65 38,80' fill='%23C49B38'/%3E%3Cpath d='M42,90 Q67,80 62,68 Q47,70 40,88' fill='%23C49B38'/%3E%3C/svg%3E");
+}
+
+/* ============================================================
+   GLASSMORPHISM PANEL (Warm Buttercream Card)
    ============================================================ */
 .glass-panel {
-  background: var(--glass-bg);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow);
-  border-radius: 20px;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  box-shadow: 0 4px 20px rgba(11, 30, 60, 0.06);
+  border-radius: 18px;
+  position: relative;
+  z-index: 1;
 }
 
 /* ============================================================
    ANIMATIONS
    ============================================================ */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
+  from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Ticker scroll animation for live news */
+/* Ticker scroll animation for live news (Very slow, readable) */
 @keyframes ticker {
   0%   { transform: translateX(100%); }
   100% { transform: translateX(-100%); }
@@ -118,9 +161,10 @@ body {
    TYPOGRAPHY
    ============================================================ */
 h1, h2, h3, h4, h5, h6 {
-  font-weight: 600;
+  font-weight: 700;
   margin-bottom: 0.5rem;
-  color: var(--text-dark);
+  color: var(--text);
+  letter-spacing: -0.3px;
 }
 
 /* ============================================================
@@ -135,59 +179,61 @@ button {
 }
 
 button:active {
-  transform: scale(0.96);
+  transform: scale(0.97);
 }
 
-/* Primary Button — Sage Green (60% color, used most) */
+/* Primary Button — Deep Navy */
 .btn-primary {
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-  color: white;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: #ffffff;
   padding: 12px 24px;
   border-radius: 12px;
-  font-size: 1.05rem;
-  font-weight: 600;
-  box-shadow: 0 4px 15px rgba(135, 169, 107, 0.35);
+  font-size: 1rem;
+  font-weight: 700;
+  border: 1.5px solid var(--border);
+  box-shadow: 0 4px 15px rgba(11, 30, 60, 0.25);
   letter-spacing: 0.2px;
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(135, 169, 107, 0.50);
-  background: linear-gradient(135deg, var(--primary-light), var(--primary));
+  box-shadow: 0 6px 20px rgba(11, 30, 60, 0.35);
+  background: linear-gradient(135deg, var(--secondary), var(--primary));
 }
 
-/* Accent Button — Amber Glow (10% color, used for CTAs) */
+/* Accent Button — Harvest Gold / Amber (Matches Select Crop in Screenshot) */
 .btn-accent {
-  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
-  color: white;
+  background: linear-gradient(135deg, var(--accent), #D19F38);
+  color: var(--primary);
   padding: 12px 24px;
   border-radius: 12px;
-  font-size: 1.05rem;
-  font-weight: 600;
-  box-shadow: 0 4px 15px rgba(213, 133, 17, 0.35);
+  font-size: 1rem;
+  font-weight: 800;
+  border: 1px solid rgba(11, 30, 60, 0.15);
+  box-shadow: 0 4px 15px rgba(227, 183, 78, 0.35);
 }
 
 .btn-accent:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(213, 133, 17, 0.50);
-  background: linear-gradient(135deg, var(--accent-light), var(--accent));
+  box-shadow: 0 6px 20px rgba(227, 183, 78, 0.50);
+  background: linear-gradient(135deg, #F0C96E, var(--accent));
 }
 
-/* Outline / Ghost Button — Walnut Brown */
+/* Outline / Ghost Button */
 .btn-outline {
-  background: transparent;
-  color: var(--text-dark);
-  border: 2px solid var(--border-color);
+  background: var(--surface);
+  color: var(--text);
+  border: 1.5px solid var(--border);
   padding: 10px 22px;
   border-radius: 12px;
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 0.95rem;
+  font-weight: 700;
 }
 
 .btn-outline:hover {
-  background: var(--secondary);
-  border-color: var(--primary);
-  color: var(--primary-dark);
+  background: var(--card);
+  border-color: var(--accent);
+  color: var(--primary);
 }
 
 /* ============================================================
@@ -197,30 +243,23 @@ input, select {
   font-family: inherit;
   padding: 12px 16px;
   border-radius: 12px;
-  border: 1.5px solid var(--border-color);
-  background: rgba(255, 255, 255, 0.92);
+  border: 1.5px solid var(--border);
+  background: var(--surface);
   width: 100%;
   font-size: 1rem;
-  color: var(--text-dark);
+  color: var(--text);
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-@media (prefers-color-scheme: dark) {
-  input, select {
-    background: rgba(30, 38, 24, 0.8);
-    border: 1.5px solid rgba(135, 169, 107, 0.3);
-    color: var(--text-dark);
-  }
-}
-
 input:focus, select:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(135, 169, 107, 0.22);
+  border-color: var(--accent);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(227, 183, 78, 0.25);
   outline: none;
 }
 
 input::placeholder {
-  color: var(--text-light);
+  color: var(--muted);
 }
 
 /* ============================================================
@@ -237,20 +276,22 @@ input::placeholder {
   margin: 0 auto;
   padding: 20px;
   width: 100%;
+  position: relative;
+  z-index: 1;
 }
 
 /* ============================================================
-   NEWS TICKER (Live Govt Policy Radar)
+   NEWS TICKER (Live Govt Policy Radar — Slow & Elegant)
    ============================================================ */
 .news-ticker-container {
   overflow: hidden;
   white-space: nowrap;
-  /* Walnut brown background for the ticker bar */
-  background: linear-gradient(90deg, #5A3E2B, #7A5540);
-  color: #FEF3DC;     /* Amber-tinted white text */
-  padding: 8px 0;
+  background: linear-gradient(90deg, #07152B, #0B1E3C 35%, #0B274F 70%, #07152B);
+  color: #FFF9ED;
+  padding: 6px 0;
   font-size: 0.85rem;
-  box-shadow: 0 2px 8px rgba(90, 62, 43, 0.30);
+  border-bottom: 2px solid var(--accent);
+  box-shadow: 0 2px 10px rgba(11, 30, 60, 0.30);
   position: relative;
   z-index: 100;
 }
@@ -258,7 +299,7 @@ input::placeholder {
 .news-ticker-text {
   display: inline-block;
   white-space: nowrap;
-  animation: ticker 80s linear infinite;
+  animation: ticker 180s linear infinite; /* Very slow, 180s loop */
   padding-left: 100%;
 }
 
@@ -267,13 +308,14 @@ input::placeholder {
 }
 
 /* ============================================================
-   UTILITY BADGES & TAGS
+   UTILITY BADGES & TAGS (Navy & Gold Theme)
    ============================================================ */
 
 /* Green badge — eligible, normal, success */
 .badge-success {
-  background: var(--secondary);
-  color: var(--primary-dark);
+  background: rgba(22, 128, 74, 0.15);
+  color: var(--success);
+  border: 1px solid rgba(22, 128, 74, 0.3);
   padding: 3px 10px;
   border-radius: 12px;
   font-size: 0.75rem;
@@ -281,10 +323,11 @@ input::placeholder {
   display: inline-block;
 }
 
-/* Amber badge — warning, important notice */
+/* Gold/Amber badge — highlights */
 .badge-accent {
-  background: var(--accent-bg);
-  color: var(--accent-dark);
+  background: rgba(227, 183, 78, 0.20);
+  color: var(--primary);
+  border: 1px solid var(--accent);
   padding: 3px 10px;
   border-radius: 12px;
   font-size: 0.75rem;
@@ -292,10 +335,11 @@ input::placeholder {
   display: inline-block;
 }
 
-/* Walnut badge — neutral, informational */
+/* Neutral badge */
 .badge-neutral {
-  background: #EDE0D0;
-  color: var(--text-dark);
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
   padding: 3px 10px;
   border-radius: 12px;
   font-size: 0.75rem;
@@ -303,23 +347,23 @@ input::placeholder {
   display: inline-block;
 }
 
-/* Royal Amethyst badge — selected crop #1 rank, premium status */
+/* Gold badge — selected crop #1 rank, premium status */
 .badge-amethyst {
-  background: linear-gradient(135deg, var(--amethyst), #4A148C);
-  color: #ffffff;
+  background: linear-gradient(135deg, var(--accent), #D19F38);
+  color: var(--primary);
   padding: 3px 10px;
   border-radius: 12px;
   font-size: 0.75rem;
-  font-weight: 700;
-  box-shadow: 0 2px 8px rgba(123, 31, 162, 0.4);
+  font-weight: 800;
+  box-shadow: 0 2px 8px rgba(227, 183, 78, 0.4);
   display: inline-block;
 }
 
-/* Electric Cyan badge — active indicator, live status */
+/* Cyan/Gold badge — active indicator, live status */
 .badge-cyan {
-  background: rgba(0, 229, 255, 0.15);
-  color: var(--cyan-glow);
-  border: 1px solid var(--cyan-glow);
+  background: rgba(227, 183, 78, 0.15);
+  color: var(--accent-dark);
+  border: 1px solid var(--accent);
   padding: 3px 10px;
   border-radius: 12px;
   font-size: 0.75rem;
@@ -327,20 +371,20 @@ input::placeholder {
   display: inline-block;
 }
 
-/* Jet Black & Cyan Active High-Contrast button */
+/* Deep Navy & Gold Active High-Contrast button */
 .btn-contrast-active {
-  background: var(--jet-black) !important;
+  background: var(--primary) !important;
   color: #ffffff !important;
-  border: 1.5px solid var(--cyan-glow) !important;
-  box-shadow: 0 0 12px rgba(0, 229, 255, 0.45) !important;
+  border: 1.5px solid var(--accent) !important;
+  box-shadow: 0 0 12px rgba(227, 183, 78, 0.35) !important;
 }
 
-/* Jet Black & Cyan Active High-Contrast Card */
+/* Deep Navy & Gold Selected High-Contrast Card */
 .card-selected-contrast {
-  background: linear-gradient(135deg, #181818, #221528) !important;
+  background: linear-gradient(135deg, #0B1E3C, #0B274F) !important;
   color: #ffffff !important;
-  border: 2px solid var(--cyan-glow) !important;
-  box-shadow: 0 8px 30px rgba(0, 229, 255, 0.35) !important;
+  border: 2px solid var(--accent) !important;
+  box-shadow: 0 8px 30px rgba(11, 30, 60, 0.25) !important;
 }
 
 /* ============================================================
